@@ -3,34 +3,37 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../componentes/Layout/navbar';
 import Avatar from '../componentes/Avatar'; 
+import { useReaccion } from '../hooks/useReaccion';
 import '../App.css'
 import '../pantallas/index.css'
-import useLocalStorage from 'use-local-storage';
-import ThemeOption from '../componentes/Toggle/ThemeOptions';
-
-
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
-
-const preference = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
 const DetalleCarta = () => {
   const navigate = useNavigate();
-  const { usuario } = useAuth();
-
-  const rutaFotoPerfil="http://localhost:3000";
-
-  //Para traer la publicacion (chris)
+  const { usuario, isAuthenticated, token } = useAuth(); 
+  const rutaFotoPerfil = "http://localhost:3000";
   const { id } = useParams();
-  const [Publicacion, setPublicacion] = useState( null);
+  
+  const [Publicacion, setPublicacion] = useState(null);
+  const [comentario, setComentario] = useState('');
+  const [comentarios, setComentarios] = useState([]);
+  const [cargandoComentario, setCargandoComentario] = useState(false);
 
+
+  const { tieneLike, cantidadLikes, cargando: cargandoLike, toggleLike } = useReaccion(id);
+
+
+  useEffect(() => {
+    console.log('Usuario autenticado:', isAuthenticated);
+    console.log('Token:', token);
+    console.log('Usuario:', usuario);
+  }, [isAuthenticated, token, usuario]);
+
+  // Traer la publicación
   useEffect(() => {
     const fetchPublicacion = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:3000/api/publicaciones/${id}`
-        );
-
+        const res = await axios.get(`http://localhost:3000/api/publicaciones/${id}`);
         const p = res.data.publicacion;
 
         const publicacionMapeada = {
@@ -49,52 +52,77 @@ const DetalleCarta = () => {
             foto: p.Idusuario?.fotoPerfil
           }
         };
-
-        setPublicacion(publicacionMapeada);    
-
+        setPublicacion(publicacionMapeada);
       } catch (error) {
         console.error(error);
       }
     };
-
     if (id) fetchPublicacion();
   }, [id]);
 
-
-  //Esto contiene el comentario que se creará (chris)
-  const [comentario, setComentario] = useState('');
-
-  //y este contiene los comentarios traidos de la BD y que le pertenecen a la publicacion (chris)
-  const [comentarios, setComentarios] = useState([]);
-
-
-  //Aqui ya se traen los comentarios
-  const fetchComentarios = async () => {
+  
+const fetchComentarios = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:3000/api/comentarios?idPublicacion=${id}`
-      );
-      
-      const comentariosMapeados = res.data.comentarios.map(c => ({
-        id: c._id,
-        texto: c.texto,
-        fecha: c.createdAt,
-        usuario: {
-          id: c.idUsuario?._id,
-          nickname: c.idUsuario?.nickname,
-          foto: c.idUsuario?.fotoPerfil
-        }
+        console.log('Fetching comentarios para publicación:', id);
+        const res = await axios.get(`http://localhost:3000/api/publicaciones/${id}/comentarios`);
         
-      }));
-
-      setComentarios(comentariosMapeados);
-
+        console.log('Respuesta comentarios:', res.data);
+        
+   
+        const comentariosMapeados = (res.data.comentarios || []).map(c => ({
+            id: c._id,
+            texto: c.texto,
+            fecha: c.fecha,
+            usuario: {
+                id: c.idUsuario?._id,
+                nickname: c.idUsuario?.nickname,
+                nombre: c.idUsuario?.nombre,
+                foto: c.idUsuario?.fotoPerfil
+            }
+        }));
+        
+        console.log('Comentarios mapeados:', comentariosMapeados.length);
+        setComentarios(comentariosMapeados);
     } catch (error) {
-      console.error('Error cargando comentarios:', error);
+        console.error('Error cargando comentarios:', error);
+        console.error('Detalles:', error.response?.data);
     }
-  };
+};
+
+const handleEnviarComentario = async (e) => {
+    e.preventDefault();
+    if (!comentario.trim()) return;
+    
+    if (!isAuthenticated) {
+        alert("Inicia sesión para comentar");
+        return;
+    }
+    
+    setCargandoComentario(true);
+    try {
+        console.log('Enviando comentario:', comentario);
+        const response = await axios.post(
+            `http://localhost:3000/api/publicaciones/${id}/comentario`,
+            { texto: comentario },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        console.log('Respuesta al enviar comentario:', response.data);
+        
+        // Actualizar la lista de comentarios
+        await fetchComentarios();
+        setComentario("");
+    } catch (error) {
+        console.error("Error enviando comentario:", error);
+        console.error("Detalles:", error.response?.data);
+        alert("No se pudo enviar el comentario: " + (error.response?.data?.message || error.message));
+    } finally {
+        setCargandoComentario(false);
+    }
+};
 
   const formatearFecha = (fecha) => {
+    if (!fecha) return '';
     return new Date(fecha).toLocaleString();
   };
 
@@ -102,52 +130,15 @@ const DetalleCarta = () => {
     if (id) fetchComentarios();
   }, [id]);
 
-  const handleEnviarComentario = async () => {
-    try {
-      const token = localStorage.getItem("token");
+ 
 
-      await axios.post(
-        "http://localhost:3000/api/comentarios",
-        {
-          idPublicacion: Publicacion.id,
-          texto: comentario
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      fetchComentarios();
-      setComentario(""); // limpiar input
-      // opcional: recargar comentarios
-    } catch (error) {
-      console.error("Error enviando comentario:", error);
+  const handleLikeClick = async () => {
+    if (!isAuthenticated) {
+      alert("Inicia sesión para dar like");
+      return;
     }
+    await toggleLike();
   };
-
-
-  //Para likes
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(42);
-
-  const handleLike = () => {
-    let newLiked = !liked;
-    let newLikesCount = newLiked ? likesCount + 1 : likesCount - 1;
-    
-    setLiked(newLiked);
-    setLikesCount(newLikesCount);
-    
-    if (usuario && usuario.id && Publicacion.id) {
-      const savedLikes = localStorage.getItem(`Publicacion_likes_${usuario.id}`);
-      const likesState = savedLikes ? JSON.parse(savedLikes) : {};
-      likesState[Publicacion.id] = newLiked;
-      localStorage.setItem(`Publicacion_likes_${usuario.id}`, JSON.stringify(likesState));
-    }
-  };
-
-  
 
   if (!Publicacion) {
     return <div className="text-white p-4">Cargando publicación...</div>;
@@ -167,7 +158,7 @@ const DetalleCarta = () => {
             X
           </button>
 
-          
+          {/* Imagen */}
           <div className="w-full md:w-[350px] min-h-[500px] border-2 border rounded-3xl bg-slate-900/40 flex items-center justify-center relative shadow-2xl">
             <div className="bg-slate px-6 py-3 rounded-xl border border">
               <span className="text-gray-300 font-bold text-sm uppercase tracking-widest italic text-center block">
@@ -180,10 +171,10 @@ const DetalleCarta = () => {
             </div>
           </div>
 
-          {/* columna der */}
+          {/* Columna derecha */}
           <div className="w-full md:w-[420px] lg:w-[480px] flex flex-col gap-4 flex-shrink-0">
 
-            {/* info de la Publicacion */}
+            {/* Info de la Publicacion */}
             <div className="border-2 border rounded-2xl p-6 bg-slate-900/60 relative shadow-xl">
               <div className="space-y-3 text-sm">
                 <h2 className="text-2xl font-bold text-white mb-2">{Publicacion.titulo}</h2>
@@ -200,76 +191,73 @@ const DetalleCarta = () => {
                 </div>
               </div>
 
+              {/* Botón de Like */}
               <div className="mt-6">
                 <button 
-                  onClick={handleLike}
+                  onClick={handleLikeClick}
+                  disabled={cargandoLike}
                   className="w-14 h-10 bg-slate border rounded-xl flex items-center justify-center hover:bg-pink-900/20 transition-all group"
                 >
-                  <span className={`text-2xl group-hover:scale-125 transition-transform ${liked ? 'text-pink-500' : 'text-gray-400'}`}>
-                    {liked ? '❤️' : '🤍'}
+                  <span className={`text-2xl group-hover:scale-125 transition-transform ${tieneLike ? 'text-pink-500' : 'text-gray-400'}`}>
+                    {tieneLike ? '❤️' : '🤍'}
                   </span>
                 </button>
-                <span className="ml-2 text-xs text-gray-400">{likesCount} me gusta</span>
+                <span className="ml-2 text-xs text-gray-400">{cantidadLikes} me gusta</span>
               </div>
             </div>
 
+            {/* Sección de Comentarios */}
             <div className="border-2 border rounded-2xl p-6 bg-slate-900/60 flex flex-col gap-4 shadow-xl">
               <h3 className="text-[10px] font-black uppercase tracking-widest highlight">
                 Comentarios ({comentarios.length})
               </h3>
 
               <div className="max-h-[300px] overflow-y-auto space-y-3 pr-2">
-                {comentarios.map((c) => (
-                  <div key={c.id} className={`p-4 rounded-2xl flex items-start gap-3 border ${
-                      c.usuario?.id === usuario?.id 
-                      ? 'bg-emerald-900/20 border-emerald-500/50' 
-                      : 'bg-[#2d2a3e]/60 border-gray-700'
-                    }`}>
-
-                    {/* Usar componente Avatar */}
-                    <div className="w-8 h-8 shrink-0">
-                      <Avatar
-                        fotoPerfil= {rutaFotoPerfil + c.usuario.foto}
-                        nombre={c.usuario.nickname}
-                        size="w-full h-full"
-                        textSize="text-xs"
-                        borderColor="border-emerald-500"
-                      />
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-[10px] font-bold highlight block">
-                          {c.usuario?.nickname || 'Usuario'}
-
-                          {c.usuario?.id === usuario?.id && (
-                            <span className="ml-2 text-emerald-400 text-[8px]">(Tú)</span>
-                          )}
-                        </span>
-                        {c.fecha && (
-                          <span className="text-[8px] text-gray-500">{formatearFecha(c.fecha)}</span>
-                        )}
-
+                {comentarios.length === 0 ? (
+                  <p className="text-gray-500 text-xs text-center py-4">
+                    No hay comentarios aún. ¡Sé el primero en comentar!
+                  </p>
+                ) : (
+                  comentarios.map((c) => (
+                    <div key={c.id} className={`p-4 rounded-2xl flex items-start gap-3 border ${
+                        c.usuario?.id === usuario?._id || c.usuario?.id === usuario?.id
+                        ? 'bg-emerald-900/20 border-emerald-500/50' 
+                        : 'bg-[#2d2a3e]/60 border-gray-700'
+                      }`}>
+                      <div className="w-8 h-8 shrink-0">
+                        <Avatar
+                          fotoPerfil={c.usuario?.foto ? rutaFotoPerfil + c.usuario.foto : null}
+                          nombre={c.usuario?.nickname || c.usuario?.nombre || 'Usuario'}
+                          size="w-full h-full"
+                          textSize="text-xs"
+                          borderColor="border-emerald-500"
+                        />
                       </div>
-                      {/* Texto del comentario JUSTIFICADO */}
-                      <p className="text-xs text-gray-200 mt-1 text-justify">{c.texto}</p>
-                      {/* Alternativa con estilos en línea:
-                      <p style={{ fontSize: '0.75rem', color: '#e5e7eb', marginTop: '0.25rem', textAlign: 'justify', lineHeight: '1.4' }}>
-                        {comentario.texto}
-                      </p>
-                      */}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] font-bold highlight block">
+                            {c.usuario?.nickname || c.usuario?.nombre || 'Usuario'}
+                            {(c.usuario?.id === usuario?._id || c.usuario?.id === usuario?.id) && (
+                              <span className="ml-2 text-emerald-400 text-[8px]">(Tú)</span>
+                            )}
+                          </span>
+                          {c.fecha && (
+                            <span className="text-[8px] text-gray-500">{formatearFecha(c.fecha)}</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-200 mt-1 text-justify">{c.texto}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
               
-
+              {/* Formulario para nuevo comentario */}
               <form onSubmit={handleEnviarComentario} className="mt-2 border-2 border-dashed border rounded-2xl p-4 flex items-center gap-3 bg-black/30 focus-within:border-emerald-500 transition-colors">
-               
                 <div className="w-8 h-8 shrink-0">
                   <Avatar
-                    fotoPerfil={usuario?.fotoPerfil}
-                    nombre={usuario?.nombre}
+                    fotoPerfil={usuario?.fotoPerfil ? rutaFotoPerfil + usuario.fotoPerfil : null}
+                    nombre={usuario?.nombre || 'Usuario'}
                     size="w-full h-full"
                     textSize="text-xs"
                     borderColor="border-transparent"
@@ -277,20 +265,27 @@ const DetalleCarta = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder={`Comentar como ${usuario?.nombre || usuario?.correo?.split('@')[0] || 'Usuario'}...`}
+                  placeholder={isAuthenticated 
+                    ? `Comentar como ${usuario?.nombre || usuario?.correo?.split('@')[0] || 'Usuario'}...`
+                    : "Inicia sesión para comentar"}
                   value={comentario}
                   onChange={(e) => setComentario(e.target.value)}
-                  className="bg-transparent flex-1 outline-none text-xs placeholder-gray-600 text-white"
+                  disabled={cargandoComentario || !isAuthenticated}
+                  className="bg-transparent flex-1 outline-none text-xs placeholder-gray-600 text-white disabled:opacity-50"
                 />
-                <button type="submit" className="primary-text hover:scale-125 transition-transform">➤</button>
+                <button 
+                  type="submit" 
+                  disabled={cargandoComentario || !comentario.trim() || !isAuthenticated}
+                  className="primary-text hover:scale-125 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {cargandoComentario ? '⏳' : '➤'}
+                </button>
               </form>
-
             </div>
           </div>
         </div>
       </div>
     </div>
-    
   );
 };
 

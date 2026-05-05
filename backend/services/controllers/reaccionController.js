@@ -1,16 +1,20 @@
+
 import Reaccion from '../models/reaccionModel.js';
 import Publicacion from '../models/publiModel.js';
 
-// Obtener reacciones de una publicación
+
 export const obtenerReacciones = async (req, res) => {
     try {
         const { idPublicacion } = req.params;
         
-        const resultado = await Reaccion.obtenerPorPublicacion(idPublicacion);
+        const total = await Reaccion.countDocuments({ idPublicacion });
+        const reacciones = await Reaccion.find({ idPublicacion })
+            .populate('idUsuario', 'nombre nickname fotoPerfil');
         
         res.json({
             success: true,
-            ...resultado
+            total,
+            reacciones
         });
     } catch (error) {
         console.error('Error obteniendo reacciones:', error);
@@ -28,6 +32,10 @@ export const reaccionar = async (req, res) => {
         const { tipo = 'like' } = req.body;
         const usuarioId = req.usuario.id;
         
+        console.log('Reaccionando a publicación:', idPublicacion);
+        console.log('Usuario:', usuarioId);
+        console.log('Tipo:', tipo);
+        
         // Verificar que la publicación existe
         const publicacion = await Publicacion.findById(idPublicacion);
         if (!publicacion) {
@@ -44,26 +52,24 @@ export const reaccionar = async (req, res) => {
         });
         
         if (reaccion) {
-            // Si ya existe, actualizar tipo
-            if (reaccion.tipo === tipo) {
-                // Si es el mismo tipo, eliminar reacción
-                await reaccion.deleteOne();
-                
-                // Actualizar contador de la publicación
-                publicacion.MeGusta = Math.max(0, publicacion.MeGusta - 1);
-                const index = publicacion.UsuariosMeGusta.indexOf(usuarioId);
-                if (index !== -1) publicacion.UsuariosMeGusta.splice(index, 1);
-                await publicacion.save();
-                
-                return res.json({
-                    success: true,
-                    message: 'Reacción eliminada',
-                    reaccion: null
-                });
-            } else {
-                // Cambiar tipo
-                await reaccion.cambiarTipo(tipo);
+            // Si ya existe, eliminar (toggle)
+            await reaccion.deleteOne();
+            
+            // Actualizar contador de la publicación
+            if (publicacion.MeGusta > 0) {
+                publicacion.MeGusta -= 1;
             }
+            const index = publicacion.UsuariosMeGusta?.indexOf(usuarioId);
+            if (index !== -1 && index !== undefined) {
+                publicacion.UsuariosMeGusta.splice(index, 1);
+            }
+            await publicacion.save();
+            
+            return res.json({
+                success: true,
+                message: 'Reacción eliminada',
+                reaccion: null
+            });
         } else {
             // Crear nueva reacción
             reaccion = new Reaccion({
@@ -73,13 +79,12 @@ export const reaccionar = async (req, res) => {
             });
             await reaccion.save();
             
-            // Actualizar contador de la publicación (para compatibilidad)
-            publicacion.MeGusta += 1;
+            // Actualizar contador de la publicación
+            publicacion.MeGusta = (publicacion.MeGusta || 0) + 1;
+            if (!publicacion.UsuariosMeGusta) publicacion.UsuariosMeGusta = [];
             publicacion.UsuariosMeGusta.push(usuarioId);
             await publicacion.save();
         }
-        
-        await reaccion.populate('idUsuario', 'nombre nickname fotoPerfil');
         
         res.json({
             success: true,
