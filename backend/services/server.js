@@ -10,6 +10,7 @@ import publiRoutes from "./routes/publiRoutes.js";
 import reaccionRoutes from './routes/reaccionRoutes.js';
 import franquiciaRoutes from "./routes/franquiciaRoutes.js";
 import comentarioRoutes from "./routes/comentarioRoutes.js";
+import reporteRoutes from './routes/reporteRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,6 +71,7 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/franquicias', franquiciaRoutes);
 app.use('/api/comentarios', comentarioRoutes);
 app.use('/api/reacciones', reaccionRoutes);
+app.use('/api/reportes', reporteRoutes);
 
 // Ruta de prueba
 app.get('/test', (req, res) => {
