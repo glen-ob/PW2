@@ -9,6 +9,8 @@ import usuarioRoutes from "./routes/usuarioRoutes.js";
 import publiRoutes from "./routes/publiRoutes.js";
 import franquiciaRoutes from "./routes/franquiciaRoutes.js";
 import comentarioRoutes from "./routes/comentarioRoutes.js";
+import cartaRoutes from "./routes/cartaRoutes.js";
+import coleccionRoutes from "./routes/coleccionRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,7 +70,8 @@ app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/publicaciones', publiRoutes);
 app.use('/api/franquicias', franquiciaRoutes);
 app.use('/api/comentarios', comentarioRoutes);
-
+app.use('/api/cartas', cartaRoutes);
+app.use('/api/colecciones', coleccionRoutes);
 
 // Ruta de prueba
 app.get('/test', (req, res) => {

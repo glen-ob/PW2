@@ -5,7 +5,7 @@ import { optimizarImagen, eliminarImagen } from '../utils/imageUtils.js';
 // Obtener todas las cartas
 export const obtenerCartas = async (req, res) => {
     try {
-        const { termino, franquicia, limite = 20 } = req.query;
+        const { termino, franquicia, limite = 50 } = req.query;
         
         let cartas;
         if (termino) {
@@ -14,8 +14,8 @@ export const obtenerCartas = async (req, res) => {
             cartas = await Carta.obtenerPorFranquicia(franquicia);
         } else {
             cartas = await Carta.find({ activo: true })
-                .populate('idFranquicia', 'nombre')
-                .populate('creadaPor', 'nombre nickname')
+                .populate('idFranquicia', 'nombre slug')
+                .sort({ _id: 1 })
                 .sort({ createdAt: -1 })
                 .limit(parseInt(limite));
         }

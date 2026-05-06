@@ -2,68 +2,81 @@ import React, { useState } from 'react';
 import '../../App.css';
 import '../../pantallas/index.css';
 
-const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
-  const [selectedCartas, setSelectedCartas] = useState([]);
-  const [franquicia, setFranquicia] = useState('all');
+//Para traer las cartas y franquicias de la BD (chris)
+import { useEffect } from 'react';
+import axios from 'axios';
+
+const Gallery = ({ isOpen, onClose, onSelectCartas, franquicia, setFranquicia, selectedCartas, setSelectedCartas }) => {
+  const [cartas, setCartas] = useState([]); 
   const [busqueda, setBusqueda] = useState('');
 
-  const cartas = [
-    // POKEMON
-    { id: 1, nombre: 'Raichu', franquicia: 'pokemon', imagen: '/imagesPokemon/raichu.PNG' },
-    { id: 2, nombre: 'Pikachu ex', franquicia: 'pokemon', imagen: '/imagesPokemon/pikachu_ex.PNG' },
-    { id: 3, nombre: 'Jolteon', franquicia: 'pokemon', imagen: '/imagesPokemon/jolteon.PNG' },
-    { id: 4, nombre: 'Clefairy', franquicia: 'pokemon', imagen: '/imagesPokemon/clefairy.PNG' },
-    { id: 5, nombre: 'Minccino', franquicia: 'pokemon', imagen: '/imagesPokemon/minccino.PNG' },
-    { id: 6, nombre: 'Rapidash', franquicia: 'pokemon', imagen: '/imagesPokemon/rapidash.PNG' },
-    { id: 7, nombre: 'Lapras', franquicia: 'pokemon', imagen: '/imagesPokemon/lapras.PNG' },
-    { id: 8, nombre: 'Charizard ex', franquicia: 'pokemon', imagen: '/imagesPokemon/charizard_ex.PNG' },
-    // MAGIC
-    { id: 10, nombre: 'Caballero Templario', franquicia: 'magic', imagen: '/imagesMagic/caballero_templario.png' },
-    { id: 11, nombre: 'Albondiga Siempre Leal', franquicia: 'magic', imagen: '/imagesMagic/albondiga_siempre_leal.png' },
-    { id: 12, nombre: 'Herbivoro arboreo', franquicia: 'magic', imagen: '/imagesMagic/herbivoro_arboreo.png' },
-    { id: 13, nombre: 'Astillas Oseas', franquicia: 'magic', imagen: '/imagesMagic/astillas_oseas.jpg' },
-    { id: 14, nombre: 'Hurgar Cerebro', franquicia: 'magic', imagen: '/imagesMagic/hurgar_cerebro.png' },
-    { id: 15, nombre: 'Contendiente Aclamada', franquicia: 'magic', imagen: '/imagesMagic/contendiente_aclamda.png' },
-    { id: 16, nombre: 'Rastrero de la Cripta', franquicia: 'magic', imagen: '/imagesMagic/rastrero_de_la_cripta.jpg' },
-    { id: 17, nombre: 'Suenos Desenfrenados', franquicia: 'magic', imagen: '/imagesMagic/suenos_desenfrenados.png' },
-    // DRAGON BALL
-    { id: 20, nombre: 'Exploradores', franquicia: 'dragonball', imagen: '/imagesDB/exploradores.jpg' },
-    { id: 21, nombre: 'Sabemos quien ganara', franquicia: 'dragonball', imagen: '/imagesDB/sabemos_quien_ganara.jpg' },
-    { id: 22, nombre: 'Big bang kame hame ha', franquicia: 'dragonball', imagen: '/imagesDB/big_bang_kame_hame_ha.jpg' },
-    { id: 23, nombre: 'Detener Ataque', franquicia: 'dragonball', imagen: '/imagesDB/detener_ataque.jpg' },
-    { id: 24, nombre: 'Humillando', franquicia: 'dragonball', imagen: '/imagesDB/humillando.jpg' },
-    { id: 25, nombre: 'Big Bang', franquicia: 'dragonball', imagen: '/imagesDB/big_bang.jpg' },
-    { id: 26, nombre: 'Quita aire', franquicia: 'dragonball', imagen: '/imagesDB/quita_aire.jpg' },
-    { id: 27, nombre: 'Super Saiyan 2', franquicia: 'dragonball', imagen: '/imagesDB/super_saiyan2.png' },
-    // YU-GI-OH
-    { id: 28, nombre: 'Chica Maga Oscura', franquicia: 'yugioh', imagen: '/imagesYugioh/chica_maga_oscura.jpg' },
-    { id: 29, nombre: 'D Contragolpe', franquicia: 'yugioh', imagen: '/imagesYugioh/d-contragolpe.jpg' },
-    { id: 30, nombre: 'Ciber Dragon', franquicia: 'yugioh', imagen: '/imagesYugioh/ciber_dragon.jpg' },
-    { id: 31, nombre: 'Coraza del Caos', franquicia: 'yugioh', imagen: '/imagesYugioh/coraza_del_caos.jpg' },
-    { id: 32, nombre: 'Dragon Blanco de ojos Azules', franquicia: 'yugioh', imagen: '/imagesYugioh/dragon_blanco_de_ojos_azules.jpg' },
-    { id: 33, nombre: 'El Dragon alado de Ra', franquicia: 'yugioh', imagen: '/imagesYugioh/el_dragon_alado_de_ra.jpg' },
-    { id: 34, nombre: 'Gil Garth', franquicia: 'yugioh', imagen: '/imagesYugioh/gil_garth.png' },
-    { id: 35, nombre: 'Buey de Batalla', franquicia: 'yugioh', imagen: '/imagesYugioh/buey_de_batalla.jpg' },
-    // DIGIMON
-    { id: 36, nombre: 'Patamon', franquicia: 'digimon', imagen: '/imagesDigimon/patamon.jpg' },
-    { id: 37, nombre: 'AncientKazemon', franquicia: 'digimon', imagen: '/imagesDigimon/ancient_kazemon.jpg' },
-    { id: 38, nombre: 'Yellow Scramble', franquicia: 'digimon', imagen: '/imagesDigimon/yellow_scramble.jpg' },
-    { id: 39, nombre: 'BurningGreymon', franquicia: 'digimon', imagen: '/imagesDigimon/burningGreymon.png' },
-    { id: 40, nombre: 'Pulsemon', franquicia: 'digimon', imagen: '/imagesDigimon/pulsemon.jpg' },
-    { id: 41, nombre: 'Jijimon', franquicia: 'digimon', imagen: '/imagesDigimon/jijimon.png' },
-    { id: 42, nombre: 'GoldVeedramon', franquicia: 'digimon', imagen: '/imagesDigimon/goldveedramon.jpg' },
-    { id: 43, nombre: 'Elecmon', franquicia: 'digimon', imagen: '/imagesDigimon/elecmon.jpg' },
-  ];
+
+  //Esta contiene todas las franquicias, traidas desde la BD (chris)
+  const [franquicias, setFranquicias] = useState([]);
+  
+  //Aquí ya se llaman las franquicias desde la BD
+  useEffect(() => {
+    const fetchFranquicias = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/api/franquicias');
+        setFranquicias(res.data.franquicias);
+      } catch (error) {
+        console.error('Error cargando franquicias:', error);
+      }
+    };
+
+    fetchFranquicias();
+  }, []);
+
+  useEffect(() => {
+  const fetchCartas = async () => {
+    try {
+      const res = await axios.get('http://localhost:3000/api/cartas');
+
+      const cartasMapeadas = res.data.cartas.map(c => ({
+        id: c._id,
+        nombre: c.nombre,
+        franquiciaId: c.idFranquicia?._id,
+        franquicia: c.idFranquicia?.nombre?.toLowerCase() || 'desconocido',
+        imagen: c.imagenUrl // 👈 usa tu virtual del modelo
+      }));
+
+      //Aquí se setean las cartas en const cartas
+      setCartas(cartasMapeadas);
+    } catch (error) {
+      console.error('Error cargando cartas:', error);
+    }
+  };
+
+    fetchCartas();
+  }, []);
+
 
   if (!isOpen) return null;
 
   const cartasFiltradas = cartas.filter(c => {
-    const matchFranquicia = franquicia === 'all' || c.franquicia === franquicia;
+    const matchFranquicia =
+      !franquicia ||
+      franquicia === 'all' ||
+      c.franquiciaId === franquicia;
     const matchBusqueda = c.nombre.toLowerCase().includes(busqueda.toLowerCase());
     return matchFranquicia && matchBusqueda;
   });
 
   const handleToggleCarta = (carta) => {
+
+    // ❌ bloquear seleccion de carta si no coincide su franquicia con la franquicia 
+    if (!franquicia) {
+    alert('Selecciona una franquicia primero');
+    return;
+    }
+
+    if (carta.franquiciaId !== franquicia) {
+      alert('Solo puedes seleccionar cartas de la franquicia elegida');
+      return;
+    }
+
+    
     setSelectedCartas(prev => {
       const existe = prev.find(c => c.id === carta.id);
       if (existe) {
@@ -142,12 +155,13 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
                     border: `1px solid var(--border-color)`
                   }}
                 >
-                  <option value="all">Todas las franquicias</option>
-                  <option value="pokemon">Pokemon</option>
-                  <option value="magic">Magic</option>
-                  <option value="dragonball">Dragon Ball</option>
-                  <option value="yugioh">Yu-Gi-Oh</option>
-                  <option value="digimon">Digimon</option>
+                  <option value="all">Todas</option>
+                  {franquicias.map((f) => (
+                    <option key={f._id} value={f._id}>
+                      {f.nombre}
+                    </option>
+                  ))}
+
                 </select>
                 <span className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[8px] sm:text-[10px] text-white">▼</span>
               </div>
@@ -239,7 +253,8 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
                       alt={carta.nombre}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/300x450/1e293b/56ab91?text=Imagen+No+Encontrada';
+                        e.target.onerror = null; // 🔥 evita loop infinito
+                        e.target.src = '/fallback.png'; // mejor usa una local
                       }}
                     />
                     

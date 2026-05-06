@@ -27,8 +27,8 @@ const cartaSchema = new mongoose.Schema({
         default: 'común'
     },
     numero: {
-        type: String,
-        trim: true,
+        type: Number,
+        min: 0,
         comment: 'Número de la carta en la colección'
     },
     año: {
@@ -40,11 +40,6 @@ const cartaSchema = new mongoose.Schema({
         type: Number,
         min: 0,
         default: 0
-    },
-    creadaPor: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Usuario',
-        required: true
     },
     activo: {
         type: Boolean,
@@ -61,10 +56,14 @@ cartaSchema.index({ rareza: 1 });
 cartaSchema.index({ valorEstimado: -1 });
 
 // Método para obtener URL completa de la imagen
-cartaSchema.virtual('imagenUrl').get(function() {
-    if (!this.imagen) return null;
-    const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-    return `${baseUrl}${this.imagen}`;
+cartaSchema.virtual('imagenUrl').get(function () {
+  if (!this.imagen) return null;
+
+  // Si ya es URL completa, respétala
+  if (this.imagen.startsWith('http')) return this.imagen;
+
+  // 🔥 Aquí defines de dónde salen las imágenes
+  return `http://localhost:3000/uploads/cartas/${this.imagen}`;
 });
 
 // Método estático para buscar cartas

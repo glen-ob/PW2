@@ -265,6 +265,16 @@ const CartaConEfecto = ({ carta, isCenter, onClick }) => {
           </svg>
           <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '0.5rem' }}>{carta.nombre}</h3>
           <p style={{ fontSize: '0.875rem', color: '#e2e8f0', textAlign: 'center' }}>Rareza: {carta.rareza}</p>
+          <p style={{ 
+            fontSize: '0.75rem', 
+            color: '#cbd5f5', 
+            textAlign: 'center',
+            marginTop: '0.5rem',
+            lineHeight: '1.2'
+          }}>
+            {carta.descripcion}
+          </p>
+          
           <button 
             style={{ marginTop: '1rem', padding: '0.25rem 0.75rem', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '0.5rem', fontSize: '0.75rem', cursor: 'pointer', border: 'none', color: 'white' }}
             onClick={(e) => {

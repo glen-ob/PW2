@@ -27,7 +27,7 @@ const Feed = () => {
   useEffect(() => {
     const fetchPublicaciones = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/publicaciones');
+        const res = await axios.get('http://localhost:3000/api/publicaciones?tipo=feed');
         setPublicaciones(res.data.publicaciones);
       } catch (error) {
         console.error('Error cargando publicaciones:', error);

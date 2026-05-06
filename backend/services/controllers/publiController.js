@@ -1,5 +1,9 @@
 import Publicacion from '../models/publiModel.js';
 import Usuario from '../models/usuarioModel.js';
+import Coleccion from '../models/coleccionModel.js';
+import Carta from '../models/cartaModel.js';
+import Franquicia from '../models/franquiciaModel.js';
+
 import { optimizarMultiplesImagenes, eliminarMultiplesImagenes } from '../utils/imageUtils.js';
 
 // Crear nueva publicación
@@ -14,7 +18,7 @@ export const crearPublicacion = async (req, res) => {
             Texto,
             Tipo,
             Monto,
-            Franquicia,
+            Franquicia: franquiciaId,
             Cantidad,
             Condicion,
             CartasColeccion
@@ -39,22 +43,182 @@ export const crearPublicacion = async (req, res) => {
             });
         }
         
+        // Procesar CartasColeccion si es string
+        let cartasProcesadas = [];
         if (Tipo === 'coleccion') {
+
+            console.log('\n===== VALIDANDO COLECCION =====');
+
             let cartasArray = CartasColeccion;
+
+            console.log('CartasColeccion RAW:', CartasColeccion);
+            console.log('Tipo de CartasColeccion:', typeof CartasColeccion);
+
             if (typeof CartasColeccion === 'string') {
                 try {
                     cartasArray = JSON.parse(CartasColeccion);
+
+                    console.log('Cartas parseadas correctamente');
                 } catch (e) {
+
+                    console.log('❌ Error parseando CartasColeccion');
+                    console.log(e);
+
                     cartasArray = [];
                 }
             }
-            
+
+            console.log('cartasArray final:', cartasArray);
+            console.log('Cantidad de cartas recibidas:', cartasArray.length);
+
+            // Validar que no venga vacío
             if (!cartasArray || cartasArray.length === 0) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: 'Las publicaciones de colección requieren al menos una carta' 
+                console.log('❌ No se recibieron cartas');
+
+                return res.status(400).json({
+                    success: false,
+                    message: 'Las publicaciones de colección requieren al menos una carta'
                 });
             }
+
+            // Evitar colección duplicada
+            console.log('\nBuscando colección duplicada...');
+
+            const existe = await Coleccion.findOne({
+                idUsuario: usuarioId,
+                idFranquicia: franquiciaId,
+                tipo: 'collection'
+            });
+
+            console.log('Colección existente:', existe ? 'SI' : 'NO');
+
+            if (existe) {
+                console.log('❌ El usuario ya tiene colección de esta franquicia');
+
+                return res.status(400).json({
+                    success: false,
+                    message: 'Ya tienes una colección de esta franquicia'
+                });
+            }
+
+            // =========================
+            // VALIDAR CARTAS
+            // =========================
+
+            console.log('\nBuscando cartas en MongoDB...');
+
+            const cartasDB = await Carta.find({
+                _id: { $in: cartasArray }
+            });
+
+            console.log('Cartas encontradas en DB:', cartasDB.length);
+
+            cartasDB.forEach((carta, index) => {
+                console.log(`Carta ${index + 1}:`);
+                console.log({
+                    id: carta._id.toString(),
+                    nombre: carta.nombre,
+                    franquicia: carta.idFranquicia.toString()
+                });
+            });
+
+            // Validar que todas existan
+            if (cartasDB.length !== cartasArray.length) {
+
+                console.log('❌ Algunas cartas no existen');
+
+                const idsDB = cartasDB.map(c => c._id.toString());
+
+                const faltantes = cartasArray.filter(
+                    id => !idsDB.includes(id.toString())
+                );
+
+                console.log('IDs faltantes:', faltantes);
+
+                return res.status(400).json({
+                    success: false,
+                    message: 'Una o más cartas no existen'
+                });
+            }
+
+            console.log('\nValidando franquicias...');
+
+            const todasValidas = cartasDB.every(carta => {
+                const mismaFranquicia =
+                    carta.idFranquicia.toString() === franquiciaId;
+
+                console.log({
+                    carta: carta.nombre,
+                    franquiciaCarta: carta.idFranquicia.toString(),
+                    franquiciaSeleccionada: franquiciaId,
+                    valida: mismaFranquicia
+                });
+
+                return mismaFranquicia;
+            });
+
+            if (!todasValidas) {
+
+                console.log('❌ Hay cartas de otra franquicia');
+
+                return res.status(400).json({
+                    success: false,
+                    message: 'Todas las cartas deben pertenecer a la franquicia seleccionada'
+                });
+            }
+
+            console.log('✅ Todas las cartas son válidas');
+
+            cartasProcesadas = cartasArray;
+        }
+
+        if (!Titulo || Titulo.trim() === '') {
+            return res.status(400).json({
+                success: false,
+                message: 'El titulo es obligatorio'
+            });
+        }
+
+        if (!Tipo) {
+            return res.status(400).json({
+                success: false,
+                message: 'El tipo de publicacion es obligatorio'
+            });
+        }
+
+        if (Titulo.trim().length > 100) {
+            return res.status(400).json({
+                success: false,
+                message: 'El titulo no puede superar los 100 caracteres'
+            });
+        }
+
+        if (Texto && Texto.trim().length > 1000) {
+            return res.status(400).json({
+                success: false,
+                message: 'La descripcion no puede superar los 1000 caracteres'
+            });
+        }
+
+        //Validar que la franquicia existe
+        const franquiciaExiste = await Franquicia.findById(franquiciaId);
+
+        if (!franquiciaExiste) {
+            return res.status(400).json({
+                success: false,
+                message: 'La franquicia seleccionada no existe'
+            });
+        }
+
+
+        //Para evitar basura enviada desde Postman/frontend modificado.
+        const tiposPermitidos = ['venta', 'intercambio', 'coleccion'];
+
+        if (!tiposPermitidos.includes(Tipo)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Tipo de publicacion invalido'
+            });
         }
         
         if ((Tipo === 'venta' || Tipo === 'intercambio') && (!req.files || req.files.length === 0)) {
@@ -64,7 +228,7 @@ export const crearPublicacion = async (req, res) => {
             });
         }
 
-        if (!Franquicia) {
+        if (!franquiciaId) {
             return res.status(400).json({
                 success: false,
                 message: 'La franquicia es obligatoria'
@@ -78,8 +242,7 @@ export const crearPublicacion = async (req, res) => {
             fotos = req.files.map(file => file.filename);
         }
         
-        // Procesar CartasColeccion si es string
-        let cartasProcesadas = [];
+        
         if (Tipo === 'coleccion') {
             if (typeof CartasColeccion === 'string') {
                 cartasProcesadas = JSON.parse(CartasColeccion);
@@ -95,7 +258,7 @@ export const crearPublicacion = async (req, res) => {
             Tipo,
             Monto: Tipo === 'venta' ? parseFloat(Monto) : null,
             Fotos: fotos,
-            Franquicia,
+            Franquicia: franquiciaId,
             Cantidad: Cantidad ? parseInt(Cantidad) : 1,
             Condicion: Condicion || 'buena',
             CartasColeccion: cartasProcesadas,
@@ -103,7 +266,26 @@ export const crearPublicacion = async (req, res) => {
         });
         
         console.log('Fotos a guardar:', fotos);
+
         await nuevaPublicacion.save();
+        if(Tipo=== 'coleccion'){
+            // Crear colección 
+
+            const nuevaColeccion = await Coleccion.create({
+                idUsuario: usuarioId,
+                idFranquicia: franquiciaId,
+                tipo: 'collection', //aqui se deberá cambiar a dinamico para que tambien pueda ser tipo pool
+                deck: cartasProcesadas,
+                idPublicacion: nuevaPublicacion._id
+                
+            });
+
+            await Publicacion.findByIdAndUpdate(
+                nuevaPublicacion._id,
+                { Idconjunto: nuevaColeccion._id }
+            );
+        }
+        
         await nuevaPublicacion.populate('Idusuario', 'nombre nickname correo fotoPerfil');
         
         console.log('✅ Publicación creada exitosamente:', nuevaPublicacion._id);
@@ -131,40 +313,66 @@ export const crearPublicacion = async (req, res) => {
 
 // Obtener todas las publicaciones
 export const obtenerPublicaciones = async (req, res) => {
-    try {
-        const { tipo, pagina = 1, limite = 20 } = req.query;
-        const skip = (pagina - 1) * limite;
-        
-        let query = { Estado: 'activo' };
-        if (tipo && ['venta', 'intercambio', 'coleccion'].includes(tipo)) {
+  try {
+    const { tipo, pagina = 1, limite = 20 } = req.query;
+    const skip = (pagina - 1) * limite;
+
+    let query = { Estado: 'activo' };
+
+    if (tipo) {
+        if (tipo === 'feed') {
+            query.Tipo = { $in: ['venta', 'intercambio'] };
+        } else if (['venta', 'intercambio', 'coleccion'].includes(tipo)) {
             query.Tipo = tipo;
         }
-        
-        const publicaciones = await Publicacion.find(query)
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limite))
-            .populate('Idusuario', 'nombre nickname correo fotoPerfil')
-            .populate('Franquicia', 'nombre slug');
-        
-        const total = await Publicacion.countDocuments(query);
-        
-        res.json({
-            success: true,
-            publicaciones,
-            paginacion: {
-                total,
-                pagina: parseInt(pagina),
-                totalPaginas: Math.ceil(total / limite)
-            }
-        });
-    } catch (error) {
-        console.error('Error obteniendo publicaciones:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: error.message 
+    }
+
+    // 🔥 Base query
+    let publicacionesQuery = Publicacion.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limite))
+      .populate('Idusuario', 'nombre nickname correo fotoPerfil')
+      .populate('Franquicia', 'nombre slug');
+
+    // 🔥 Si se pide SOLO colecciones → populate completo
+    if (tipo === 'coleccion') {
+      publicacionesQuery = publicacionesQuery
+        .populate({
+          path: 'Idconjunto',
+          populate: {
+            path: 'deck',
+            select: 'nombre imagen rareza descripcion'
+          }
+        })
+        .populate({
+          path: 'CartasColeccion',
+          select: 'nombre imagen rareza descripcion'
         });
     }
+
+    // 🔥 Ejecutar query
+    const publicaciones = await publicacionesQuery;
+
+    const total = await Publicacion.countDocuments(query);
+
+    res.json({
+      success: true,
+      publicaciones,
+      paginacion: {
+        total,
+        pagina: parseInt(pagina),
+        totalPaginas: Math.ceil(total / limite)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error obteniendo publicaciones:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
 };
 
 // Obtener publicaciones por usuario

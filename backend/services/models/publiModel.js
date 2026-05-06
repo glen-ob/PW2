@@ -8,7 +8,7 @@ const publicacionesSchema = new mongoose.Schema({
     },
     Idconjunto: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Conjunto',
+        ref: 'Coleccion',
         default: null
     },
     Titulo: {

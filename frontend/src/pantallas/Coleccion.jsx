@@ -7,6 +7,8 @@ import Avatar from '../componentes/Avatar';
 import '../App.css';
 import '../index.css';
 
+import axios from 'axios';
+
 const Coleccion = () => {
   const navigate = useNavigate();
   const { usuario } = useAuth();
@@ -22,70 +24,78 @@ const Coleccion = () => {
   const comentarioInputRef = useRef(null);
   const comentarioValueRef = useRef('');
 
-  const publicaciones = [
-    {
-      id: 1,
-      usuario: "María González",
-      usuarioId: "123",
-      avatar: "https://i.pravatar.cc/150?img=1",
-      franquicia: "Pokémon TCG",
-      titulo: "Mi mazo soñado ✨",
-      descripcion: "Por fin conseguí esta carta tan buscada, después de meses de búsqueda la encontré en perfecto estado. ¡Estoy muy emocionada!",
-      imagenes: [
-        "https://i.pinimg.com/736x/65/ca/29/65ca29f9b651507b5d7f22e026efd934.jpg",
-        "https://i.pinimg.com/736x/de/2e/b6/de2eb6fa73ee8ca0207f369c27d93a41.jpg",
-        "https://i.pinimg.com/736x/07/82/77/078277c4800956801743a953bd5f99a1.jpg"
-      ],
-      likes: 24,
-      comentarios: [
-        { id: 1, usuario: "Carlos", usuarioId: "456", texto: "Muy buena elección de cartas", avatar: "https://i.pravatar.cc/150?img=8", timestamp: "Hace 2 días" },
-        { id: 2, usuario: "Ana", usuarioId: "789", texto: "Nunca había pensado en combinar esas cartas, pero quedan geniales", avatar: "https://i.pravatar.cc/150?img=5", timestamp: "Hace 1 día" }
-      ],
-      timestamp: "Hace 2 horas"
-    },
-    {
-      id: 2,
-      usuario: "Carlos Ruiz",
-      usuarioId: "456",
-      avatar: "https://i.pravatar.cc/150?img=8",
-      franquicia: "Magic: The Gathering",
-      titulo: "Torneo local 🏆",
-      descripcion: "Excelente día de juego, logré quedar en tercer lugar con mi mazo de dragones. ¡La comunidad cada vez más grande!",
-      imagenes: [
-        "https://media.wizards.com/2020/m21/sp_oUXkK8xzpJ.png",
-        "https://api.tcg.land/images/mtg/v2/fdn/44/en/a-75.webp"
-      ],
-      precio: "$800.00",
-      cantidad: 2,
-      likes: 42,
-      comentarios: [
-        { id: 3, usuario: "Luis", usuarioId: "101", texto: "Gran torneo, fue increíble", avatar: "https://i.pravatar.cc/150?img=12", timestamp: "Hace 3 horas" }
-      ],
-      timestamp: "Hace 5 horas"
-    },
-    {
-      id: 3,
-      usuario: "Ana Martínez",
-      usuarioId: "789",
-      avatar: "https://i.pravatar.cc/150?img=5",
-      franquicia: "Yu-Gi-Oh!",
-      titulo: "Mi colección completa",
-      descripcion: "Después de años finalmente completé la colección de las cartas originales. ¡Sueño cumplido!",
-      imagenes: [
-        "https://i.pinimg.com/736x/43/f9/b2/43f9b2a40e6454e58714ef6a5f26618b.jpg",
-        "https://i.pinimg.com/736x/8e/0d/1d/8e0d1db60e1243596fbc263ba79d19b6.jpg",
-        "https://i.pinimg.com/736x/b0/55/0b/b0550bb7717419b7f745e92c94753ec3.jpg",
-        "https://i.pinimg.com/736x/c1/09/de/c109de8ec00ce6e1f0bd7262a75bfb28.jpg"
-      ],
-      likes: 87,
-      comentarios: [
-        { id: 4, usuario: "Roberto", usuarioId: "111", texto: "¡Impresionante colección!", avatar: "https://i.pravatar.cc/150?img=12", timestamp: "Hace 5 días" },
-        { id: 5, usuario: "Laura", usuarioId: "112", texto: "¿Cuánto tiempo te tomó?", avatar: "https://i.pravatar.cc/150?img=10", timestamp: "Hace 4 días" }
-      ],
-      timestamp: "Hace 1 día"
-    }
-  ];
+  const [publicaciones, setPublicaciones] = useState([]);
+  const [loadingPublicaciones, setLoadingPublicaciones] = useState(true);
 
+  useEffect(() => {
+    const fetchPublicaciones = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/api/publicaciones?tipo=coleccion');
+        console.log(res.data.publicaciones);
+
+        // adapta estructura aquí 👇
+        const pubs = res.data.publicaciones.map(p => {
+
+          // Se definen las cartas
+          const cartas =
+            p.Idconjunto?.deck?.length > 0
+              ? p.Idconjunto.deck
+              : p.CartasColeccion || [];
+
+          return {
+            id: p._id,
+
+            usuario: p.Idusuario?.nombre || 'Usuario',
+            usuarioId: p.Idusuario?._id,
+
+            avatar: p.Idusuario?.fotoPerfil
+              ? `http://localhost:3000${p.Idusuario.fotoPerfil}`
+              : null,
+
+            franquicia: p.Franquicia?.nombre || 'General',
+
+            titulo: p.Titulo || '',
+            descripcion: p.Texto || '',
+
+            // 🔥 ahora sí funciona
+            imagenes: cartas
+              .map(c => c.imagen)
+              .filter(Boolean)
+              .map(url => `http://localhost:3000/uploads/cartas/${url}`),
+
+            likes: p.MeGusta || 0,
+            comentarios: p.Comentarios || [],
+
+            timestamp: formatearTiempo(p.createdAt)
+          };
+        });
+
+        setPublicaciones(pubs);
+
+      } catch (error) {
+        console.error('Error cargando publicaciones:', error);
+      } finally {
+        setLoadingPublicaciones(false);
+      }
+    };
+
+    fetchPublicaciones();
+  }, []);
+
+
+  //Para darle formato a las fechas
+  const formatearTiempo = (fecha) => {
+    const diff = Date.now() - new Date(fecha).getTime();
+    const minutos = Math.floor(diff / 60000);
+
+    if (minutos < 60) return `Hace ${minutos} min`;
+    const horas = Math.floor(minutos / 60);
+    if (horas < 24) return `Hace ${horas} h`;
+    const dias = Math.floor(horas / 24);
+    return `Hace ${dias} d`;
+  };
+
+  
   useEffect(() => {
     if (usuario && usuario.id) {
       const savedLikes = localStorage.getItem(`likes_${usuario.id}`);
@@ -144,6 +154,14 @@ const Coleccion = () => {
       if (comentarioInputRef.current) comentarioInputRef.current.value = '';
     }
   };
+
+  if (loadingPublicaciones) {
+    return (
+      <div className="text-white text-center mt-10">
+        Cargando publicaciones...
+      </div>
+    );
+  }
 
   return (      
     <div className='App' id='App'>
