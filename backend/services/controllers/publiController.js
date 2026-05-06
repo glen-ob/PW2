@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'; 
 import Publicacion from '../models/publiModel.js';
 import Usuario from '../models/usuarioModel.js';
 import { optimizarMultiplesImagenes, eliminarMultiplesImagenes } from '../utils/imageUtils.js';
@@ -466,19 +467,24 @@ export const obtenerMiLike = async (req, res) => {
         const { id } = req.params;
         const usuarioId = req.usuario.id;
         
+        // Validar que id sea un ObjectId válido
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: 'ID inválido' });
+        }
+        
         const publicacion = await Publicacion.findById(id);
         if (!publicacion) {
             return res.status(404).json({ success: false, message: 'Publicación no encontrada' });
         }
         
-        const tieneLike = publicacion.UsuariosMeGusta.includes(usuarioId);
+        const tieneLike = publicacion.UsuariosMeGusta?.includes(usuarioId) || false;
         
         res.json({
             success: true,
-            reaccion: tieneLike ? 'like' : null
+            tieneLike
         });
     } catch (error) {
-        console.error('Error obteniendo like:', error);
+        console.error('Error:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 };

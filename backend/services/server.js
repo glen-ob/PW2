@@ -11,6 +11,7 @@ import reaccionRoutes from './routes/reaccionRoutes.js';
 import franquiciaRoutes from "./routes/franquiciaRoutes.js";
 import comentarioRoutes from "./routes/comentarioRoutes.js";
 import reporteRoutes from './routes/reporteRoutes.js';
+import estadisticaRoutes from './routes/estadisticaRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,8 +30,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir archivos estáticos - CORREGIDO
-// La carpeta uploads está al mismo nivel que services
+// Servir archivos estáticos
 const uploadsPath = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadsPath));
 
@@ -42,7 +42,6 @@ if (fs.existsSync(uploadsPath)) {
     console.log(' Carpeta uploads existe');
     console.log(' Contenido de uploads:', fs.readdirSync(uploadsPath));
     
-    // Verificar subcarpetas
     const perfilesPath = path.join(uploadsPath, 'perfiles');
     if (fs.existsSync(perfilesPath)) {
         console.log(' Contenido de perfiles:', fs.readdirSync(perfilesPath));
@@ -51,7 +50,6 @@ if (fs.existsSync(uploadsPath)) {
     }
 } else {
     console.log(' Carpeta uploads NO existe');
-    // Crear la carpeta si no existe
     fs.mkdirSync(uploadsPath, { recursive: true });
     console.log(' Carpeta uploads creada');
 }
@@ -65,19 +63,19 @@ if (fs.existsSync(uploadsPath)) {
     }
 });
 
-// Rutas
+// Rutas - CORREGIDAS
 app.use('/api/publicaciones', publiRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/franquicias', franquiciaRoutes);
 app.use('/api/comentarios', comentarioRoutes);
-app.use('/api/reacciones', reaccionRoutes);
+app.use('/api/publicaciones/:idPublicacion/reacciones', reaccionRoutes); // ✅ CORREGIDO
 app.use('/api/reportes', reporteRoutes);
+app.use('/api/estadisticas', estadisticaRoutes);
 
 // Ruta de prueba
 app.get('/test', (req, res) => {
     res.json({ mensaje: 'Servidor funcionando correctamente' });
 });
-
 
 app.get('/debug/usuario/:id', async (req, res) => {
     try {
@@ -94,7 +92,7 @@ app.get('/debug/usuario/:id', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// Ruta para verificar si una imagen existe (debug)
+
 app.get('/check-image/:filename', (req, res) => {
     const imagePath = path.join(uploadsPath, 'perfiles', req.params.filename);
     if (fs.existsSync(imagePath)) {
@@ -107,6 +105,6 @@ app.get('/check-image/:filename', (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`\ Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`\n Servidor corriendo en http://localhost:${PORT}`);
     console.log(` URL base de imágenes: http://localhost:${PORT}/uploads/\n`);
 });
