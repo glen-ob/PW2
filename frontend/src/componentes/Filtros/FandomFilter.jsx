@@ -7,10 +7,10 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const fandoms = [
-    { id: 'pokemon', label: 'Pokemon', color: 'from-yellow-400 to-red-400' },
-    { id: 'magic', label: 'Magic', color: 'from-blue-400 to-purple-400' },
-    { id: 'digimon', label: 'Digimon', color: 'from-orange-400 to-red-400' },
-    { id: 'dragonball', label: 'DragonBall', color: 'from-orange-500 to-red-500' }
+    { id: 'Pokémon', label: 'Pokémon', color: 'from-yellow-400 to-red-400' },
+    { id: 'Magic', label: 'Magic', color: 'from-blue-400 to-purple-400' },
+    { id: 'Digimon', label: 'Digimon', color: 'from-orange-400 to-red-400' },
+    { id: 'Dragon Ball', label: 'Dragon Ball', color: 'from-orange-500 to-red-500' }
   ];
 
   React.useEffect(() => {

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'; 
 import Publicacion from '../models/publiModel.js';
 import Usuario from '../models/usuarioModel.js';
 import Coleccion from '../models/coleccionModel.js';
@@ -288,7 +289,7 @@ export const crearPublicacion = async (req, res) => {
         
         await nuevaPublicacion.populate('Idusuario', 'nombre nickname correo fotoPerfil');
         
-        console.log('✅ Publicación creada exitosamente:', nuevaPublicacion._id);
+        console.log(' Publicación creada exitosamente:', nuevaPublicacion._id);
         
         res.status(201).json({
             success: true,
@@ -297,7 +298,7 @@ export const crearPublicacion = async (req, res) => {
         });
         
     } catch (error) {
-        console.error('❌ Error creando publicación:', error);
+        console.error(' Error creando publicación:', error);
         
         // Limpiar archivos subidos si hay error
         if (req.files && req.files.length > 0) {
@@ -311,7 +312,8 @@ export const crearPublicacion = async (req, res) => {
     }
 };
 
-// Obtener todas las publicaciones
+
+// publiController.js - obtenerPublicaciones
 export const obtenerPublicaciones = async (req, res) => {
   try {
     const { tipo, pagina = 1, limite = 20 } = req.query;
@@ -374,7 +376,6 @@ export const obtenerPublicaciones = async (req, res) => {
     });
   }
 };
-
 // Obtener publicaciones por usuario
 export const obtenerPublicacionesPorUsuario = async (req, res) => {
     try {
@@ -532,44 +533,19 @@ export const eliminarPublicacion = async (req, res) => {
     }
 };
 
-// Dar/Quitar like
-export const toggleLike = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const usuarioId = req.usuario.id;
-        
-        const publicacion = await Publicacion.findById(id);
-        
-        if (!publicacion) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Publicación no encontrada' 
-            });
-        }
-        
-        await publicacion.toggleLike(usuarioId);
-        
-        res.json({
-            success: true,
-            message: publicacion.UsuariosMeGusta.includes(usuarioId) ? 'Like agregado' : 'Like removido',
-            likes: publicacion.MeGusta
-        });
-    } catch (error) {
-        console.error('Error toggling like:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: error.message 
-        });
-    }
-};
 
 // Agregar comentario
+
 export const agregarComentario = async (req, res) => {
     try {
         const { id } = req.params;
         const { texto } = req.body;
         const usuarioId = req.usuario.id;
         
+        console.log('Agregando comentario a publicación:', id);
+        console.log('Usuario:', usuarioId);
+        console.log('Texto:', texto);
+        
         const publicacion = await Publicacion.findById(id);
         
         if (!publicacion) {
@@ -579,13 +555,28 @@ export const agregarComentario = async (req, res) => {
             });
         }
         
-        await publicacion.agregarComentario(usuarioId, texto);
+        // Agregar comentario
+        publicacion.Comentarios.push({
+            Idusuario: usuarioId,
+            Texto: texto,
+            Fecha: new Date()
+        });
+        
+        await publicacion.save();
+        
+        // Obtener el comentario recién creado con los datos del usuario
+        const nuevoComentario = publicacion.Comentarios[publicacion.Comentarios.length - 1];
         await publicacion.populate('Comentarios.Idusuario', 'nombre nickname fotoPerfil');
         
         res.json({
             success: true,
             message: 'Comentario agregado',
-            comentario: publicacion.Comentarios[publicacion.Comentarios.length - 1]
+            comentario: {
+                _id: nuevoComentario._id,
+                texto: nuevoComentario.Texto,
+                fecha: nuevoComentario.Fecha,
+                idUsuario: nuevoComentario.Idusuario
+            }
         });
     } catch (error) {
         console.error('Error agregando comentario:', error);
@@ -595,7 +586,6 @@ export const agregarComentario = async (req, res) => {
         });
     }
 };
-
 // Eliminar comentario
 export const eliminarComentario = async (req, res) => {
     try {
@@ -640,5 +630,62 @@ export const eliminarComentario = async (req, res) => {
             success: false, 
             message: error.message 
         });
+    }
+};
+
+
+export const toggleReaccion = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const usuarioId = req.usuario.id;
+        
+        const publicacion = await Publicacion.findById(id);
+        if (!publicacion) {
+            return res.status(404).json({ success: false, message: 'Publicación no encontrada' });
+        }
+        
+        
+        await publicacion.toggleLike(usuarioId);
+        
+    
+        const tieneLike = publicacion.UsuariosMeGusta.includes(usuarioId);
+        
+        res.json({
+            success: true,
+            message: tieneLike ? 'Like agregado' : 'Like removido',
+            reaccion: tieneLike ? 'like' : null,  
+            likes: publicacion.MeGusta
+        });
+    } catch (error) {
+        console.error('Error toggling like:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
+export const obtenerMiLike = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const usuarioId = req.usuario.id;
+        
+        // Validar que id sea un ObjectId válido
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, message: 'ID inválido' });
+        }
+        
+        const publicacion = await Publicacion.findById(id);
+        if (!publicacion) {
+            return res.status(404).json({ success: false, message: 'Publicación no encontrada' });
+        }
+        
+        const tieneLike = publicacion.UsuariosMeGusta?.includes(usuarioId) || false;
+        
+        res.json({
+            success: true,
+            tieneLike
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ success: false, message: error.message });
     }
 };

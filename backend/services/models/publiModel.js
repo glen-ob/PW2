@@ -37,11 +37,9 @@ const publicacionesSchema = new mongoose.Schema({
         default: null,
         validate: {
             validator: function(value) {
-                // Si es tipo 'venta', el monto es obligatorio y debe ser > 0
                 if (this.Tipo === 'venta') {
                     return value !== null && value > 0;
                 }
-                // Si es 'intercambio' o 'coleccion', el monto debe ser null
                 return value === null;
             },
             message: function(props) {
@@ -56,11 +54,9 @@ const publicacionesSchema = new mongoose.Schema({
         type: [String], 
         validate: {
             validator: function(v) {
-                // Para venta e intercambio: máximo 10 fotos
                 if (this.Tipo === 'venta' || this.Tipo === 'intercambio') {
                     return v.length <= 10;
                 }
-                // Para colección: máximo 10 fotos de la galería
                 if (this.Tipo === 'coleccion') {
                     return v.length <= 10;
                 }
@@ -74,7 +70,6 @@ const publicacionesSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Franquicia',
         required: true
-
     },
     Cantidad: {
         type: Number,
@@ -119,42 +114,37 @@ const publicacionesSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    // Para publicaciones de colección (mazo de cartas)
     CartasColeccion: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Carta'
     }],
- 
     Condicion: {
         type: String,
         enum: ['nueva', 'como nueva', 'buena', 'aceptable', 'mala'],
         default: 'buena'
     },
- 
 }, {
-    timestamps: true // Esto crea automáticamente createdAt y updatedAt
+    timestamps: true 
 });
 
-// Índices para mejorar el rendimiento de las consultas
+// Índices
 publicacionesSchema.index({ Idusuario: 1, createdAt: -1 });
 publicacionesSchema.index({ Tipo: 1, createdAt: -1 });
 publicacionesSchema.index({ Franquicia: 1, Tipo: 1 });
 publicacionesSchema.index({ Estado: 1, createdAt: -1 });
 
-// Método virtual para obtener la URL completa de las fotos
+
 publicacionesSchema.virtual('fotosUrls').get(function() {
     if (!this.Fotos || this.Fotos.length === 0) return [];
-    // Asumiendo que las rutas son relativas
     const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
     return this.Fotos.map(foto => `${baseUrl}/uploads/publicaciones/${foto}`);
 });
 
-// Método para verificar si un usuario ha dado like
+// Métodos
 publicacionesSchema.methods.usuarioDioLike = function(usuarioId) {
     return this.UsuariosMeGusta.includes(usuarioId);
 };
 
-// Método para dar/quitar like
 publicacionesSchema.methods.toggleLike = async function(usuarioId) {
     const index = this.UsuariosMeGusta.indexOf(usuarioId);
     if (index === -1) {
@@ -167,7 +157,6 @@ publicacionesSchema.methods.toggleLike = async function(usuarioId) {
     return await this.save();
 };
 
-// Método para agregar comentario
 publicacionesSchema.methods.agregarComentario = async function(usuarioId, texto) {
     this.Comentarios.push({
         Idusuario: usuarioId,
@@ -177,21 +166,18 @@ publicacionesSchema.methods.agregarComentario = async function(usuarioId, texto)
     return await this.save();
 };
 
-// Middleware pre-save para validaciones adicionales
+// Middleware pre-save
 publicacionesSchema.pre('save', function() {
-    // Validar que si es colección, tenga al menos una carta
     if (this.Tipo === 'coleccion' && (!this.CartasColeccion || this.CartasColeccion.length === 0)) {
         throw new Error('Las publicaciones de colección deben tener al menos una carta');
     }
     
-    // Validar que si es venta o intercambio, tenga al menos una foto
     if ((this.Tipo === 'venta' || this.Tipo === 'intercambio') && (!this.Fotos || this.Fotos.length === 0)) {
         throw new Error('Las publicaciones de venta/intercambio deben tener al menos una imagen');
     }
-    
 });
 
-// Método estático para obtener publicaciones por tipo
+// Métodos estáticos
 publicacionesSchema.statics.obtenerPorTipo = async function(tipo, limite = 20, pagina = 1) {
     const skip = (pagina - 1) * limite;
     return await this.find({ Tipo: tipo, Estado: 'activo' })
@@ -202,7 +188,6 @@ publicacionesSchema.statics.obtenerPorTipo = async function(tipo, limite = 20, p
         .populate('CartasColeccion');
 };
 
-// Método estático para obtener publicaciones de un usuario
 publicacionesSchema.statics.obtenerPorUsuario = async function(usuarioId, limite = 20, pagina = 1) {
     const skip = (pagina - 1) * limite;
     return await this.find({ Idusuario: usuarioId })
@@ -212,14 +197,14 @@ publicacionesSchema.statics.obtenerPorUsuario = async function(usuarioId, limite
         .populate('CartasColeccion');
 };
 
-// Configuración para excluir campos sensibles al convertir a JSON
+
 publicacionesSchema.set('toJSON', {
+    virtuals: true,  
     transform: function(doc, ret) {
         delete ret.UsuariosMeGusta;
         delete ret.__v;
         return ret;
-    },
-    virtuals: true
+    }
 });
 
 const Publicacion = mongoose.model("Publicacion", publicacionesSchema);

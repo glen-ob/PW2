@@ -37,32 +37,24 @@ const Feed = () => {
     fetchPublicaciones();
   }, []);
 
-  const cards = publicaciones.map(pub => ({
-    id: pub._id,
+ 
+const cards = publicaciones.map(pub => ({
+  id: pub._id,
+  type: pub.Idusuario?.nickname || 'Usuario',
+  fandom: pub.Franquicia?.nombre || 'Sin franquicia',
+  fandomId: pub.Franquicia?._id,
 
-    // Nombre del usuario
-    type: pub.Idusuario?.nickname || 'Usuario',
-
-    // Nombre de la franquicia (requiere populate)
-    fandom: pub.Franquicia?.nombre || 'Sin franquicia',
-
-    // ID de la franquicia
-    fandomId: pub.Franquicia?._id,
-
-    // Imagen principal
-    image: pub.fotosUrls?.[0] || 'https://via.placeholder.com/200x280',
-
-    reverse: pub.Texto || 'Sin descripcion',
-
-    description: pub.Titulo,
-
-    price: pub.Monto ? `$${pub.Monto}` : '',
-
-    cantidad: pub.Cantidad,
-
-    isVenta: pub.Tipo === 'venta',
-    isIntercambio: pub.Tipo === 'intercambio'
-  }));
+  image: pub.fotosUrls && pub.fotosUrls.length > 0 
+    ? pub.fotosUrls[0]
+    : 'https://via.placeholder.com/300x400/1e293b/56ab91?text=Sin+Imagen',
+  reverse: pub.Texto || 'Sin descripcion',
+  description: pub.Titulo,
+  price: pub.Monto ? `$${pub.Monto}` : '',
+  cantidad: pub.Cantidad,
+  isVenta: pub.Tipo === 'venta',
+  isIntercambio: pub.Tipo === 'intercambio',
+  comentariosCount: pub.comentariosCount || 0
+}));
 
   
   React.useEffect(() => {
@@ -113,9 +105,6 @@ const Feed = () => {
   const handleCardClick = (card) => {
     navigate(`/detalle/carta/${card.id}`);
   };
-
-  console.log('Filtro actual:', filterType);
-  console.log('Cartas mostradas:', sortedCards.length);
 
   return (
 <div className='App' id='App'>

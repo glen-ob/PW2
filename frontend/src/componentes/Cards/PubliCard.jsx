@@ -1,32 +1,48 @@
 import React, { useState } from 'react';
+import { useReaccion } from '../../hooks/useReaccion';
+import { useAuth } from '../../../context/AuthContext';
 
 const PubliCard = ({ publicacion, abrirModal }) => {
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(publicacion?.likes || 0);
+  const { usuario } = useAuth();
+  const { tieneLike, cantidadLikes, cargando, toggleLike } = useReaccion(
+    publicacion.id,
+    usuario?.id
+  );
+  
   const [comentarios, setComentarios] = useState(publicacion?.comentarios || []);
   const [nuevoComentario, setNuevoComentario] = useState('');
   const [mostrarComentarios, setMostrarComentarios] = useState(false);
 
-  const handleLike = () => {
-    if (liked) {
-      setLikesCount(likesCount - 1);
-      setLiked(false);
-    } else {
-      setLikesCount(likesCount + 1);
-      setLiked(true);
-    }
+  const handleLike = async () => {
+    await toggleLike();
   };
 
-  const handleAgregarComentario = (e) => {
+  const handleAgregarComentario = async (e) => {
     e.preventDefault();
-    if (nuevoComentario.trim()) {
+    if (!nuevoComentario.trim()) return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `http://localhost:3000/api/publicaciones/${publicacion.id}/comentario`,
+        { texto: nuevoComentario },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Agregar el nuevo comentario a la lista
       const nuevoComentarioObj = {
-        usuario: "Tú",
+        id: response.data.comentario._id,
         texto: nuevoComentario,
-        avatar: "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"
+        usuario: {
+          nickname: usuario?.nickname,
+          fotoPerfil: usuario?.fotoPerfil
+        }
       };
+      
       setComentarios([...comentarios, nuevoComentarioObj]);
       setNuevoComentario('');
+    } catch (error) {
+      console.error('Error al agregar comentario:', error);
     }
   };
 
@@ -53,7 +69,7 @@ const PubliCard = ({ publicacion, abrirModal }) => {
               <span className="text-gray-400 text-xs">{publicacion.timestamp}</span>
             </div>
             <div className="flex items-center gap-1">
-            <span className="text-[10px] text-emerald-400">{publicacion.franquicia}</span>
+              <span className="text-[10px] text-emerald-400">{publicacion.franquicia}</span>
             </div>
           </div>
         </div>
@@ -62,17 +78,17 @@ const PubliCard = ({ publicacion, abrirModal }) => {
         </button>
       </div>
 
-      
+      {/* Contenido */}
       <div className="px-3 pb-2">
         <div className="flex items-center gap-1">
-        <h1 className="font-bold text-base text-white mb-1">{publicacion.titulo}</h1>
+          <h1 className="font-bold text-base text-white mb-1">{publicacion.titulo}</h1>
         </div>
         <h2 className="text-gray-300 text-xs leading-relaxed text-justify">
           {publicacion.descripcion}
         </h2>
       </div>
 
-     
+      {/* Imágenes */}
       {publicacion.imagenes && publicacion.imagenes.length > 0 && (
         <div className={`grid gap-0.5 bg-black/20 ${
           publicacion.imagenes.length === 1 ? 'grid-cols-1' :
@@ -105,13 +121,15 @@ const PubliCard = ({ publicacion, abrirModal }) => {
         </div>
       )}
 
+      {/* Estadísticas */}
       <div className="px-3 py-1.5 border-t border-[#56ab91]/20 flex justify-between text-xs text-gray-400">
         <button 
           onClick={handleLike}
+          disabled={cargando}
           className="flex items-center gap-1 hover:text-pink-500 transition-colors"
         >
-          <span>{liked ? '❤️' : '🤍'}</span>
-          <span>{likesCount}</span>
+          <span>{tieneLike ? '❤️' : '🤍'}</span>
+          <span>{cantidadLikes}</span>
         </button>
         <button 
           onClick={() => setMostrarComentarios(!mostrarComentarios)}
@@ -121,16 +139,17 @@ const PubliCard = ({ publicacion, abrirModal }) => {
         </button>
       </div>
 
-
+      {/* Botones de acción */}
       <div className="px-3 py-1.5 border-t border-[#56ab91]/20 flex gap-2">
         <button 
           onClick={handleLike}
+          disabled={cargando}
           className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg hover:bg-slate-800 transition-colors text-xs ${
-            liked ? 'text-pink-500' : 'text-gray-300'
+            tieneLike ? 'text-pink-500' : 'text-gray-300'
           }`}
         >
-          <span className={`text-base ${liked ? 'text-pink-500' : ''}`}>
-            {liked ? '❤️' : '🤍'}
+          <span className={`text-base ${tieneLike ? 'text-pink-500' : ''}`}>
+            {tieneLike ? '❤️' : '🤍'}
           </span>
           <span className="font-medium">Me gusta</span>
         </button>
@@ -143,27 +162,27 @@ const PubliCard = ({ publicacion, abrirModal }) => {
         </button>
       </div>
 
-      
+      {/* Sección de comentarios (igual que antes) */}
       {mostrarComentarios && (
         <div className="px-3 pb-3 pt-1 border-t border-[#56ab91]/20">
-          
+          {/* ... mantener la misma estructura de comentarios ... */}
           <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
             {comentarios.length > 0 ? (
               comentarios.map((comentario, idx) => (
                 <div key={idx} className="flex gap-2">
                   <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
                     <img 
-                      src={comentario.avatar} 
-                      alt={comentario.usuario} 
+                      src={comentario.usuario?.fotoPerfil || "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"} 
+                      alt={comentario.usuario?.nickname} 
                       className="w-full h-full object-cover" 
                     />
                   </div>
                   <div className="flex-1 bg-slate-800/50 rounded-lg px-2 py-1">
-                  <div className="flex items-center gap-1 mb-0.5">
-                    <span className="font-semibold text-xs text-emerald-400 block">
-                      {comentario.usuario}
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <span className="font-semibold text-xs text-emerald-400 block">
+                        {comentario.usuario?.nickname || 'Usuario'}
+                      </span>
+                    </div>
                     <p className="text-gray-300 text-xs text-justify leading-relaxed">
                       {comentario.texto}
                     </p>
@@ -177,11 +196,10 @@ const PubliCard = ({ publicacion, abrirModal }) => {
             )}
           </div>
 
-          {/* Input para nuevo comentario */}
           <form onSubmit={handleAgregarComentario} className="flex items-center gap-2">
             <div className="w-7 h-7 bg-slate-700 rounded-full overflow-hidden flex-shrink-0">
               <img 
-                src="https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png" 
+                src={usuario?.fotoPerfil ? `http://localhost:3000${usuario.fotoPerfil}` : "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"} 
                 alt="Avatar" 
                 className="w-full h-full object-cover" 
               />
