@@ -5,23 +5,34 @@ import { useAuth } from '../../../context/AuthContext';
 
 const PubliCard = ({ 
   publicacion,
-  abrirModal,  // <-- PROP PARA ABRIR MODAL
+  abrirModal,
   usuarioActual,
   tokenActual,
   onLikeChange,
-  onComentarioChange
+  onComentarioChange,
+  forceUpdateKey
 }) => {
   const { usuario: usuarioContext } = useAuth();
   const usuario = usuarioActual || usuarioContext;
   
-  const { tieneLike, cantidadLikes, cargando, toggleLike } = useReaccion(
-    publicacion.id,
-    usuario?.id
-  );
+  const { 
+    tieneLike, 
+    cantidadLikes, 
+    cargando, 
+    toggleLike,
+    refreshLikes  
+  } = useReaccion(publicacion.id);
   
   const [mostrarComentarios, setMostrarComentarios] = useState(false);
   const [nuevoComentario, setNuevoComentario] = useState('');
   const [comentariosLocal, setComentariosLocal] = useState(publicacion?.comentarios || []);
+
+  
+  useEffect(() => {
+    if (forceUpdateKey) {
+      refreshLikes(); 
+    }
+  }, [forceUpdateKey, refreshLikes]);
   
   useEffect(() => {
     if (mostrarComentarios && publicacion.id) {
@@ -62,6 +73,10 @@ const PubliCard = ({
   const handleLike = async () => {
     const estadoAnterior = tieneLike;
     await toggleLike();
+    
+   
+    await refreshLikes();
+    
     
     const nuevoContador = estadoAnterior ? cantidadLikes - 1 : cantidadLikes + 1;
     
@@ -137,7 +152,7 @@ const PubliCard = ({
         </h2>
       </div>
 
-      {/* Imágenes - AQUÍ SE USA abrirModal */}
+      {/* Imágenes */}
       {publicacion.imagenes && publicacion.imagenes.length > 0 && (
         <div className={`grid gap-0.5 bg-black/20 ${
           publicacion.imagenes.length === 1 ? 'grid-cols-1' :
@@ -216,6 +231,7 @@ const PubliCard = ({
       </div>
 
       {/* Sección de comentarios */}
+
       {mostrarComentarios && (
         <div className="px-3 pb-3 pt-1 border-t border-[#56ab91]/20">
           <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
@@ -224,8 +240,14 @@ const PubliCard = ({
                 <div key={comentario.id} className="flex gap-2">
                   <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
                     <img 
-                      src={comentario.usuario?.fotoPerfil || "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"} 
-                      alt={comentario.usuario?.nickname} 
+                      src={
+                        comentario.usuario?.fotoPerfil 
+                          ? comentario.usuario.fotoPerfil.startsWith('http') 
+                            ? comentario.usuario.fotoPerfil 
+                            : `http://localhost:3000${comentario.usuario.fotoPerfil}`
+                          : "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"
+                      } 
+                      alt={comentario.usuario?.nickname || 'Usuario'} 
                       className="w-full h-full object-cover" 
                     />
                   </div>
@@ -251,7 +273,12 @@ const PubliCard = ({
           <form onSubmit={handleAgregarComentario} className="flex items-center gap-2">
             <div className="w-7 h-7 bg-slate-700 rounded-full overflow-hidden flex-shrink-0">
               <img 
-                src={usuario?.fotoPerfil ? `http://localhost:3000${usuario.fotoPerfil}` : "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"} 
+                src={usuario?.fotoPerfil 
+                  ? usuario.fotoPerfil.startsWith('http') 
+                    ? usuario.fotoPerfil 
+                    : `http://localhost:3000${usuario.fotoPerfil}`
+                  : "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"
+                } 
                 alt="Avatar" 
                 className="w-full h-full object-cover" 
               />

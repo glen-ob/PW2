@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Navbar from '../componentes/Layout/navbar';
@@ -21,6 +21,7 @@ const Coleccion = () => {
   const [cargandoComentarios, setCargandoComentarios] = useState(false);
   const [publicaciones, setPublicaciones] = useState([]);
   const [loadingPublicaciones, setLoadingPublicaciones] = useState(true);
+  const [forceUpdateKey, setForceUpdateKey] = useState(0);
   
   const comentarioInputRef = useRef(null);
   const comentarioValueRef = useRef('');
@@ -30,7 +31,8 @@ const Coleccion = () => {
     tieneLike: modalTieneLike, 
     cantidadLikes: modalCantidadLikes, 
     cargando: modalCargandoLike, 
-    toggleLike: modalToggleLike 
+    toggleLike: modalToggleLike,
+    refreshLikes: modalRefreshLikes  // Usamos refreshLikes
   } = useReaccion(publicacionIdActual);
 
   const formatearTiempo = (fecha) => {
@@ -119,38 +121,31 @@ const Coleccion = () => {
     fetchPublicaciones();
   }, []);
 
-  // Funcion para actualizar likes desde PubliCard
-  const handleLikeChange = (publicacionId, nuevoEstado, nuevoContador) => {
+  // Función para actualizar likes desde PubliCard
+  const handleLikeChange = useCallback((publicacionId, nuevoEstado, nuevoContador) => {
     setPublicaciones(prev => prev.map(pub => 
       pub.id === publicacionId 
         ? { ...pub, likes: nuevoContador }
         : pub
     ));
-    
-    // Si la publicacion actual en el modal es la misma, actualizar el modal
-    if (publicacionIdActual === publicacionId) {
-      // El hook useReaccion ya maneja su propio estado
-    }
-  };
+  }, []);
 
-  // Funcion para actualizar comentarios desde PubliCard
-  const handleComentarioChange = (publicacionId, nuevoContador) => {
+  // Función para actualizar comentarios desde PubliCard
+  const handleComentarioChange = useCallback((publicacionId, nuevoContador) => {
     setPublicaciones(prev => prev.map(pub => 
       pub.id === publicacionId 
         ? { ...pub, comentariosCount: nuevoContador }
         : pub
     ));
     
-    // Si la publicacion actual en el modal es la misma, actualizar el modal
     if (publicacionIdActual === publicacionId) {
       setPublicacionActual(prev => ({
         ...prev,
         comentariosCount: nuevoContador
       }));
-      // Recargar comentarios del modal
       fetchComentarios(publicacionId);
     }
-  };
+  }, [publicacionIdActual]);
 
   const abrirModal = (publicacion, indiceImagen) => {
     setPublicacionActual(publicacion);
@@ -170,6 +165,8 @@ const Coleccion = () => {
     setImagenesPublicacion([]);
     setImagenActual(0);
     setModalComentarios([]);
+  
+    setForceUpdateKey(prev => prev + 1);
   };
 
   const imagenSiguiente = () => setImagenActual((prev) => (prev + 1) % imagenesPublicacion.length);
@@ -183,8 +180,8 @@ const Coleccion = () => {
     
     const estadoAnterior = modalTieneLike;
     await modalToggleLike();
-    
-    // Actualizar el contador de likes en la lista de publicaciones
+    await modalRefreshLikes(); 
+
     const nuevoContador = estadoAnterior ? modalCantidadLikes - 1 : modalCantidadLikes + 1;
     setPublicaciones(prev => prev.map(pub => 
       pub.id === publicacionIdActual 
@@ -205,25 +202,20 @@ const Coleccion = () => {
     }
     
     try {
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:3000/api/publicaciones/${publicacionIdActual}/comentarios`,
         { texto: texto.trim() },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      console.log('Comentario enviado:', response.data);
-      
-      // Recargar comentarios
       await fetchComentarios(publicacionIdActual);
       
-      // Actualizar el contador de comentarios en la publicacion actual
       const nuevoContador = (publicacionActual?.comentariosCount || 0) + 1;
       setPublicacionActual(prev => ({
         ...prev,
         comentariosCount: nuevoContador
       }));
       
-      // Actualizar el contador en la lista de publicaciones
       setPublicaciones(prev => prev.map(pub => 
         pub.id === publicacionIdActual 
           ? { ...pub, comentariosCount: nuevoContador }
@@ -643,15 +635,14 @@ const Coleccion = () => {
         <div className="max-w-4xl mx-auto space-y-4">
          {publicaciones.map((pub) => (
           <PubliCard 
-            key={pub.id} 
+            key={`${pub.id}-${forceUpdateKey}`} 
             publicacion={pub}
             abrirModal={abrirModal} 
-            
             usuarioActual={usuario}
             tokenActual={token}
-            
             onLikeChange={handleLikeChange}
             onComentarioChange={handleComentarioChange}
+            forceUpdateKey={forceUpdateKey}
           />
         ))}
         </div>

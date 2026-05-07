@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
@@ -23,8 +22,10 @@ export const useReaccion = (publicacionId) => {
       const tiene = response.data.reaccion === 'like';
       
       setTieneLike(tiene);
+      return tiene;
     } catch (error) {
       console.error('Error obteniendo estado del like:', error);
+      return false;
     }
   }, [publicacionId, isAuthenticated, token]);
 
@@ -39,8 +40,10 @@ export const useReaccion = (publicacionId) => {
       const cantidad = response.data.total || response.data.likes || 0;
     
       setCantidadLikes(cantidad);
+      return cantidad;
     } catch (error) {
-    
+      console.error('Error obteniendo cantidad de likes:', error);
+      return 0;
     }
   }, [publicacionId]);
 
@@ -68,7 +71,6 @@ export const useReaccion = (publicacionId) => {
       );
       
       console.log('Respuesta del servidor:', response.data);
-      
      
       const nuevoEstado = response.data.reaccion === 'like';
       const nuevaCantidad = response.data.likes || cantidadLikes;
@@ -89,6 +91,14 @@ export const useReaccion = (publicacionId) => {
     }
   };
 
+  // Función para refrescar ambos estados (like y cantidad)
+  const refreshLikes = useCallback(async () => {
+    await Promise.all([
+      obtenerCantidadLikes(),
+      isAuthenticated ? obtenerEstadoLike() : Promise.resolve()
+    ]);
+  }, [obtenerCantidadLikes, obtenerEstadoLike, isAuthenticated]);
+
   useEffect(() => {
     if (publicacionId) {
       obtenerCantidadLikes();
@@ -102,6 +112,9 @@ export const useReaccion = (publicacionId) => {
     tieneLike,
     cantidadLikes,
     cargando,
-    toggleLike
+    toggleLike,
+    refreshLikes,  // AÑADIDO: función para refrescar manualmente
+    obtenerEstadoLike,  // AÑADIDO: por si se necesita individualmente
+    obtenerCantidadLikes  // AÑADIDO: por si se necesita individualmente
   };
 };
