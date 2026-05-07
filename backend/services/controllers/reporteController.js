@@ -74,44 +74,83 @@ export const getTopPublicaciones = async (req, res) => {
     }
 };
 
-// Reporte 3: TOP 10 Usuarios más activos (por cantidad de publicaciones)
+
+
+// Reporte 3: TOP 10 Usuarios más activos (por posts + likes recibidos + likes dados)
 export const getTopUsuarios = async (req, res) => {
     try {
-        const topUsuarios = await Publicacion.aggregate([
-            { $match: { Estado: 'activo' } },
-            { $group: { _id: '$Idusuario', totalPublicaciones: { $sum: 1 } } },
-            { $sort: { totalPublicaciones: -1 } },
-            { $limit: 10 },
-            {
-                $lookup: {
-                    from: 'usuarios',
-                    localField: '_id',
-                    foreignField: '_id',
-                    as: 'usuarioInfo'
-                }
-            },
-            { $unwind: '$usuarioInfo' },
-            {
-                $project: {
-                    _id: 1,
-                    nombre: '$usuarioInfo.nombre',
-                    nickname: '$usuarioInfo.nickname',
-                    fotoPerfil: '$usuarioInfo.fotoPerfil',
-                    totalPublicaciones: 1
-                }
+       
+        let usuarios;
+        try {
+           
+            usuarios = await Usuario.find({ activo: true });
+            if (usuarios.length === 0) {
+                
+                usuarios = await Usuario.find({});
             }
-        ]);
+        } catch (error) {
+            // Si el campo activo no existe, obtener todos
+            usuarios = await Usuario.find({});
+        }
         
-        // También obtener total de reacciones recibidas por cada usuario
-        for (let usuario of topUsuarios) {
-            const publicacionesUsuario = await Publicacion.find({ 
+        console.log('Total usuarios encontrados:', usuarios.length);
+        
+        if (usuarios.length === 0) {
+            return res.json({
+                success: true,
+                data: []
+            });
+        }
+        
+        const usuariosConPuntaje = [];
+        
+        for (const usuario of usuarios) {
+            // 1. Contar publicaciones del usuario
+            const totalPublicaciones = await Publicacion.countDocuments({ 
                 Idusuario: usuario._id, 
                 Estado: 'activo' 
             });
             
-            const totalReacciones = publicacionesUsuario.reduce((sum, pub) => sum + (pub.MeGusta || 0), 0);
-            usuario.totalReacciones = totalReacciones;
+            // 2. Calcular reacciones RECIBIDAS (likes en sus publicaciones)
+            const publicacionesUsuario = await Publicacion.find({ 
+                Idusuario: usuario._id, 
+                Estado: 'activo' 
+            }).select('MeGusta');
+            
+            const totalReaccionesRecibidas = publicacionesUsuario.reduce((sum, pub) => sum + (pub.MeGusta || 0), 0);
+            
+            // 3. Calcular reacciones DADAS (likes que el usuario ha dado a cualquier publicación)
+            const totalReaccionesDadas = await Reaccion.countDocuments({ 
+                idUsuario: usuario._id 
+            });
+            
+            // 4. Calcular puntaje total (suma de todo)
+            const puntajeTotal = totalPublicaciones + totalReaccionesRecibidas + totalReaccionesDadas;
+            
+            usuariosConPuntaje.push({
+                _id: usuario._id,
+                nombre: usuario.nombre || 'Usuario',
+                nickname: usuario.nickname || usuario.nombre || 'Usuario',
+                fotoPerfil: usuario.fotoPerfil || null,
+                totalPublicaciones: totalPublicaciones,
+                totalReaccionesRecibidas: totalReaccionesRecibidas,
+                totalReaccionesDadas: totalReaccionesDadas,
+                puntajeTotal: puntajeTotal
+            });
+            
+            console.log(`Usuario: ${usuario.nickname || usuario.nombre} - Posts: ${totalPublicaciones}, Recibidos: ${totalReaccionesRecibidas}, Dados: ${totalReaccionesDadas}, Puntaje: ${puntajeTotal}`);
         }
+        
+        // Ordenar por puntaje total (mayor a menor)
+        usuariosConPuntaje.sort((a, b) => b.puntajeTotal - a.puntajeTotal);
+        
+        // Tomar top 10
+        const topUsuarios = usuariosConPuntaje.slice(0, 10);
+        
+        console.log('\n=== TOP 10 USUARIOS ===');
+        topUsuarios.forEach((u, idx) => {
+            console.log(`${idx + 1}. ${u.nickname} - Posts: ${u.totalPublicaciones}, Recibidos: ${u.totalReaccionesRecibidas}, Dados: ${u.totalReaccionesDadas}, Puntaje: ${u.puntajeTotal}`);
+        });
         
         res.json({
             success: true,
@@ -119,10 +158,9 @@ export const getTopUsuarios = async (req, res) => {
         });
     } catch (error) {
         console.error('Error en getTopUsuarios:', error);
-        res.status(500).json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message, error: error.toString() });
     }
 };
-
 // Reporte 4: Actividad Semanal
 export const getActividadSemanal = async (req, res) => {
     try {

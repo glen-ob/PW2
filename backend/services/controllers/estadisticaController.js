@@ -1,4 +1,3 @@
-
 import Publicacion from '../models/publiModel.js';
 import Usuario from '../models/usuarioModel.js';
 import Comentario from '../models/comentarioModel.js';
@@ -39,7 +38,7 @@ export const getEstadisticasUsuario = async (req, res) => {
         });
         console.log('');
 
-        // 2. COMENTARIOS hechos por el usuario
+   
         console.log('[2] CONTANDO COMENTARIOS PROPIOS');
         const totalComentarios = await Comentario.countDocuments({ 
             idUsuario: usuarioId,
@@ -74,7 +73,7 @@ export const getEstadisticasUsuario = async (req, res) => {
         console.log(`TOTAL reacciones recibidas: ${totalReaccionesRecibidas}\n`);
 
         
-        console.log('[4] CONTANDO REACCIONES DADAS (Likes a publicaciones de otros)');
+        console.log('[4] CONTANDO REACCIONES DADAS (Likes a publicaciones de otros + likes a publicaciones propias)');
         const idsPublicacionesPropias = publicacionesUsuario.map(p => p._id);
         console.log('    IDs de publicaciones propias:', idsPublicacionesPropias.map(id => id.toString()));
         
@@ -93,16 +92,17 @@ export const getEstadisticasUsuario = async (req, res) => {
             const esPropia = idsPublicacionesPropias.some(id => id.toString() === reaccion.idPublicacion?._id?.toString());
             if (esPropia) {
                 reaccionesAPropias++;
-                console.log(`Like a publicación PROPIA: ${reaccion.idPublicacion?._id} - "${reaccion.idPublicacion?.titulo?.substring(0, 30)}" (NO se cuenta como "dado")`);
+                console.log(`Like a publicación PROPIA: ${reaccion.idPublicacion?._id} - "${reaccion.idPublicacion?.titulo?.substring(0, 30)}" (SÍ se cuenta como "dado")`);
             } else {
                 reaccionesAAjenas++;
                 console.log(`Like a publicación AJENA: ${reaccion.idPublicacion?._id} - "${reaccion.idPublicacion?.titulo?.substring(0, 30)}" (SÍ se cuenta como "dado")`);
             }
         });
         
-        const totalReaccionesDadas = reaccionesAAjenas;
+        // AHORA CONTAMOS TODAS LAS REACCIONES (propias + ajenas)
+        const totalReaccionesDadas = reaccionesAPropias + reaccionesAAjenas;
         console.log(`Resumen reacciones dadas:`);
-        console.log(`      - Likes a publicaciones propias (NO cuentan): ${reaccionesAPropias}`);
+        console.log(`      - Likes a publicaciones propias (AHORA SÍ cuentan): ${reaccionesAPropias}`);
         console.log(`      - Likes a publicaciones ajenas (SÍ cuentan): ${reaccionesAAjenas}`);
         console.log(`TOTAL reacciones dadas: ${totalReaccionesDadas}\n`);
 
@@ -156,28 +156,28 @@ export const getEstadisticasUsuario = async (req, res) => {
         console.log(`Reacciones recibidas - Recientes: ${reaccionesRecibidasRecientes}, Anteriores: ${reaccionesRecibidasAnteriores}`);
         const tendenciaReaccionesRecibidas = calcularTendencia(reaccionesRecibidasRecientes, reaccionesRecibidasAnteriores);
 
-        
+        // CORREGIDO: Ahora contamos TODAS las reacciones dadas (incluyendo a publicaciones propias)
         const reaccionesDadasRecientes = await Reaccion.countDocuments({
             idUsuario: usuarioId,
-            createdAt: { $gte: hace7Dias },
-            idPublicacion: { $nin: idsPublicacionesPropias }
+            createdAt: { $gte: hace7Dias }
+            // ELIMINADO: { $nin: idsPublicacionesPropias } - Ahora cuenta todas
         });
         const reaccionesDadasAnteriores = await Reaccion.countDocuments({
             idUsuario: usuarioId,
-            createdAt: { $gte: hace14Dias, $lt: hace7Dias },
-            idPublicacion: { $nin: idsPublicacionesPropias }
+            createdAt: { $gte: hace14Dias, $lt: hace7Dias }
+            // ELIMINADO: { $nin: idsPublicacionesPropias } - Ahora cuenta todas
         });
         console.log(`   Reacciones dadas - Recientes: ${reaccionesDadasRecientes}, Anteriores: ${reaccionesDadasAnteriores}`);
         const tendenciaReaccionesDadas = calcularTendencia(reaccionesDadasRecientes, reaccionesDadasAnteriores);
         console.log('');
 
         
-        console.log('========== todo ==========');
+        console.log('========== ESTADÍSTICAS FINALES ==========');
         console.log(`Publicaciones: ${totalPublicaciones}`);
         console.log(`Comentarios: ${totalComentarios}`);
-        console.log(` Reacciones Recibidas: ${totalReaccionesRecibidas}`);
-        console.log(`Reacciones Dadas: ${totalReaccionesDadas}`);
-        console.log('====================================\n');
+        console.log(`Reacciones Recibidas: ${totalReaccionesRecibidas}`);
+        console.log(`Reacciones Dadas: ${totalReaccionesDadas} (INCLUYE likes a publicaciones propias)`);
+        console.log('==========================================\n');
 
         res.json({
             success: true,
@@ -257,7 +257,7 @@ export const getActividadGrafica = async (req, res) => {
         const reaccionesDadas = await Reaccion.find({
             idUsuario: usuarioId
         });
-        console.log(`Reacciones totales del usuario: ${reaccionesDadas.length}`);
+        console.log(`Reacciones totales del usuario: ${reaccionesDadas.length} (INCLUYE likes a publicaciones propias)`);
 
         const resultados = [];
 
@@ -295,7 +295,7 @@ export const getActividadGrafica = async (req, res) => {
                 return fechaCom >= fechaInicio && fechaCom <= fechaFin;
             }).length;
 
-            // Contar reacciones dadas
+            // Contar reacciones dadas (TODAS, incluyendo a publicaciones propias)
             const reaccionesEnPeriodo = reaccionesDadas.filter(r => {
                 const fechaReacc = new Date(r.createdAt);
                 return fechaReacc >= fechaInicio && fechaReacc <= fechaFin;
@@ -327,7 +327,7 @@ export const getDistribucionInteracciones = async (req, res) => {
     try {
         const usuarioId = req.usuario.id;
         
-        console.log('\n========== estadisticas para ver que onda ==========');
+        console.log('\n========== DISTRIBUCIÓN INTERACCIONES ==========');
         console.log('Usuario ID:', usuarioId);
         console.log('==========================================\n');
 
@@ -353,6 +353,12 @@ export const getDistribucionInteracciones = async (req, res) => {
             totalReaccionesRecibidas += pub.MeGusta || 0;
         }
         console.log(` Reacciones recibidas: ${totalReaccionesRecibidas}`);
+        
+        
+        const totalReaccionesDadas = await Reaccion.countDocuments({ 
+            idUsuario: usuarioId 
+        });
+        console.log(` Reacciones dadas: ${totalReaccionesDadas} (INCLUYE likes a publicaciones propias)`);
         console.log(' Distribución calculada\n');
 
         res.json({
@@ -360,7 +366,8 @@ export const getDistribucionInteracciones = async (req, res) => {
             data: [
                 { nombre: 'Publicaciones', valor: totalPublicaciones, color: '#f08060' },
                 { nombre: 'Comentarios', valor: totalComentarios, color: '#bc69b8' },
-                { nombre: 'Reacciones Recibidas', valor: totalReaccionesRecibidas, color: '#60f0d0' }
+                { nombre: 'Reacciones Recibidas', valor: totalReaccionesRecibidas, color: '#60f0d0' },
+                { nombre: 'Reacciones Dadas', valor: totalReaccionesDadas, color: '#f0c060' }  // NUEVO: añadido para mostrar también reacciones dadas
             ]
         });
     } catch (error) {

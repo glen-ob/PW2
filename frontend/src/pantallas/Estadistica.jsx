@@ -194,7 +194,7 @@ const Estadistica = () => {
           />
           <StatCard 
             icon={FaHeart} 
-            titulo="Likes dados" 
+            titulo="Mis me gusta" 
             valor={datosPrincipales.reaccionesDadas} 
             color="pink-500" 
             tendencia={datosPrincipales.tendencias?.reaccionesDadas}

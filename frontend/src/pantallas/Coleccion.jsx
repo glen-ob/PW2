@@ -26,13 +26,13 @@ const Coleccion = () => {
   const comentarioInputRef = useRef(null);
   const comentarioValueRef = useRef('');
 
-  // Hook para reacciones de la publicacion actual en el modal
+
   const { 
     tieneLike: modalTieneLike, 
     cantidadLikes: modalCantidadLikes, 
     cargando: modalCargandoLike, 
     toggleLike: modalToggleLike,
-    refreshLikes: modalRefreshLikes  // Usamos refreshLikes
+    refreshLikes: modalRefreshLikes  
   } = useReaccion(publicacionIdActual);
 
   const formatearTiempo = (fecha) => {
@@ -121,7 +121,7 @@ const Coleccion = () => {
     fetchPublicaciones();
   }, []);
 
-  // Función para actualizar likes desde PubliCard
+  
   const handleLikeChange = useCallback((publicacionId, nuevoEstado, nuevoContador) => {
     setPublicaciones(prev => prev.map(pub => 
       pub.id === publicacionId 
@@ -130,7 +130,7 @@ const Coleccion = () => {
     ));
   }, []);
 
-  // Función para actualizar comentarios desde PubliCard
+
   const handleComentarioChange = useCallback((publicacionId, nuevoContador) => {
     setPublicaciones(prev => prev.map(pub => 
       pub.id === publicacionId 
