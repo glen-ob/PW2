@@ -5,6 +5,7 @@ import LeftSidebar from "../componentes/Sidebar/LeftSidebar";
 import FeedControls from "../componentes/Filtros/FeedControls";
 import CardGrid from "../componentes/Cards/CardGrid";
 import ReportesAside from "../componentes/Layout/ReportesAside";
+import FandomFilter from "../componentes/Filtros/FandomFilter"; // Importa el nuevo componente
 import '../App.css';
 import '../pantallas/index.css';
 
@@ -19,11 +20,12 @@ const Feed = () => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [mobileReportsOpen, setMobileReportsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [fandomsList, setFandomsList] = useState([]); // Para guardar la lista de fandoms
 
-  //Aqui se contendrán las publicaciones, traidas desde la BD (chris)
+  // Aquí se contendrán las publicaciones, traidas desde la BD
   const [publicaciones, setPublicaciones] = useState([]);
 
-  //Aquí ya se llaman las publicaciones desde la BD
+  // Cargar publicaciones
   useEffect(() => {
     const fetchPublicaciones = async () => {
       try {
@@ -37,26 +39,40 @@ const Feed = () => {
     fetchPublicaciones();
   }, []);
 
- 
-const cards = publicaciones.map(pub => ({
-  id: pub._id,
-  type: pub.Idusuario?.nickname || 'Usuario',
-  fandom: pub.Franquicia?.nombre || 'Sin franquicia',
-  fandomId: pub.Franquicia?._id,
+  // Cargar fandoms desde el backend
+  useEffect(() => {
+    const fetchFandoms = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/api/franquicias');
+        if (res.data.success && res.data.franquicias) {
+          setFandomsList(res.data.franquicias);
+        }
+      } catch (error) {
+        console.error('Error cargando franquicias:', error);
+      }
+    };
+    fetchFandoms();
+  }, []);
 
-  image: pub.fotosUrls && pub.fotosUrls.length > 0 
-    ? pub.fotosUrls[0]
-    : 'https://via.placeholder.com/300x400/1e293b/56ab91?text=Sin+Imagen',
-  reverse: pub.Texto || 'Sin descripcion',
-  description: pub.Titulo,
-  price: pub.Monto ? `$${pub.Monto}` : '',
-  cantidad: pub.Cantidad,
-  isVenta: pub.Tipo === 'venta',
-  isIntercambio: pub.Tipo === 'intercambio',
-  comentariosCount: pub.comentariosCount || 0
-}));
+  // Mapear publicaciones a cards
+  const cards = publicaciones.map(pub => ({
+    id: pub._id,
+    type: pub.Idusuario?.nickname || 'Usuario',
+    fandom: pub.Franquicia?.nombre || 'Sin franquicia',
+    fandomId: pub.Franquicia?._id,
+    image: pub.fotosUrls && pub.fotosUrls.length > 0 
+      ? pub.fotosUrls[0]
+      : 'https://via.placeholder.com/300x400/1e293b/56ab91?text=Sin+Imagen',
+    reverse: pub.Texto || 'Sin descripcion',
+    description: pub.Titulo,
+    price: pub.Monto ? `$${pub.Monto}` : '',
+    cantidad: pub.Cantidad,
+    isVenta: pub.Tipo === 'venta',
+    isIntercambio: pub.Tipo === 'intercambio',
+    isColeccion: pub.Tipo === 'coleccion', // Asegúrate de incluir este campo
+    comentariosCount: pub.comentariosCount || 0
+  }));
 
-  
   React.useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -65,15 +81,12 @@ const cards = publicaciones.map(pub => ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  
-  
-
-  // filtro por fandom
+  // Filtro por fandom
   const filteredByFandom = selectedFandoms.length > 0
     ? cards.filter(card => selectedFandoms.includes(card.fandomId))
     : cards;
 
-  // filtro por tipo de publicación 
+  // Filtro por tipo de publicación 
   const filteredByType = filteredByFandom.filter(card => {
     if (filterType === 'all') return true;
     if (filterType === 'sale') return card.isVenta === true;
@@ -82,7 +95,7 @@ const cards = publicaciones.map(pub => ({
     return true;
   });
 
-  // ordenamiento
+  // Ordenamiento
   const sortedCards = [...filteredByType].sort((a, b) => {
     switch (sortBy) {
       case 'price_asc': {
@@ -96,7 +109,7 @@ const cards = publicaciones.map(pub => ({
         return priceB - priceA;
       }
       case 'recent':
-        return b.id - a.id;
+        return new Date(b.id) - new Date(a.id); // Mejor usar fechas si las tienes
       default:
         return 0;
     }
@@ -106,16 +119,23 @@ const cards = publicaciones.map(pub => ({
     navigate(`/detalle/carta/${card.id}`);
   };
 
+  // Función para obtener el nombre del fandom por su ID
+  const getFandomName = (fandomId) => {
+    const fandom = fandomsList.find(f => f._id === fandomId);
+    return fandom ? fandom.nombre : fandomId;
+  };
+
   return (
-<div className='App' id='App'>
-    <div className="min-h-screen text-white font-sans flex flex-col pt-4"> 
-      <Navbar />
-      <div className="flex-1 w-full max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 pt-2 sm:pt-4 pb-6 sm:pb-8">
-        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+    <div className='App' id='App'>
+      <div className="min-h-screen text-white font-sans flex flex-col pt-4"> 
+        <Navbar />
+        <div className="flex-1 w-full max-w-[1400px] mx-auto px-3 sm:px-4 md:px-6 pt-2 sm:pt-4 pb-6 sm:pb-8">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6">
             
+            {/* Sidebar desktop - AHORA USA FandomFilter */}
             <aside className="hidden md:block md:w-[260px] lg:w-[280px] flex-shrink-0">
               <div className="sticky top-4 space-y-6">
-                <LeftSidebar 
+                <FandomFilter 
                   selectedFandoms={selectedFandoms} 
                   onFandomChange={setSelectedFandoms} 
                 />
@@ -135,7 +155,7 @@ const cards = publicaciones.map(pub => ({
                 onMobileReportsClick={() => setMobileReportsOpen(true)}
               />
               
-              {/* indicador de filtros activos */}
+              {/* Indicador de filtros activos - ACTUALIZADO para usar nombres dinámicos */}
               {(filterType !== 'all' || selectedFandoms.length > 0) && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {filterType !== 'all' && (
@@ -144,15 +164,12 @@ const cards = publicaciones.map(pub => ({
                       <button onClick={() => setFilterType('all')} className="ml-1 hover:text-red-400">×</button>
                     </span>
                   )}
-                  {selectedFandoms.map(fandomId => {
-                    const fandomName = { pokemon: 'Pokémon', magic: 'Magic', digimon: 'Digimon', dragonball: 'DragonBall' }[fandomId];
-                    return (
-                      <span key={fandomId} className="text-xs bg-[#56ab91]/20 px-2 py-1 rounded-full flex items-center gap-1">
-                        {fandomName}
-                        <button onClick={() => setSelectedFandoms(prev => prev.filter(f => f !== fandomId))} className="ml-1 hover:text-red-400">×</button>
-                      </span>
-                    );
-                  })}
+                  {selectedFandoms.map(fandomId => (
+                    <span key={fandomId} className="text-xs bg-[#56ab91]/20 px-2 py-1 rounded-full flex items-center gap-1">
+                      {getFandomName(fandomId)}
+                      <button onClick={() => setSelectedFandoms(prev => prev.filter(f => f !== fandomId))} className="ml-1 hover:text-red-400">×</button>
+                    </span>
+                  ))}
                 </div>
               )}
               
@@ -182,6 +199,7 @@ const cards = publicaciones.map(pub => ({
         </div>
       </div>
 
+      {/* Mobile Filters Sidebar - ACTUALIZADO para usar FandomFilter */}
       {isMobile && mobileFiltersOpen && (
         <>
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" onClick={() => setMobileFiltersOpen(false)} />
@@ -193,9 +211,14 @@ const cards = publicaciones.map(pub => ({
                   <span className="text-sm font-bold">X</span>
                 </button>
               </div>
-              <LeftSidebar selectedFandoms={selectedFandoms} onFandomChange={setSelectedFandoms} />
               
-              {/* filtro de tipo dentro del sidebar */}
+              {/* Filtro de franquicias - usa el nuevo componente */}
+              <FandomFilter 
+                selectedFandoms={selectedFandoms} 
+                onFandomChange={setSelectedFandoms} 
+              />
+              
+              {/* Filtro de tipo dentro del sidebar */}
               <div className="mt-6 pt-4 border-t" style={{ borderColor: 'var(--border-color)' }}>
                 <h3 className="text-sm font-semibold highlight mb-3">Tipo de publicación</h3>
                 <div className="space-y-2">
@@ -223,6 +246,7 @@ const cards = publicaciones.map(pub => ({
         </>
       )}
 
+      {/* Mobile Reports Sidebar */}
       {isMobile && mobileReportsOpen && (
         <>
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40" onClick={() => setMobileReportsOpen(false)} />
@@ -230,7 +254,7 @@ const cards = publicaciones.map(pub => ({
             <div className="p-4">
               <div className="flex justify-between items-center mb-4 pb-3 border-b" style={{ borderColor: 'var(--border-color)' }}>
                 <h2 className="text-lg font-bold highlight">Reportes Rapidos</h2>
-                <button onClick={() => setMobileReportsOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: 'var(--button-color)', border: `1px solid var(--border-color)` }}>
+                <button onClick={() => setMobileReportsOpen(false)} className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110" style={{ backgroundColor: 'var(--button-color)', border: `1px solid var(--border-color)'` }}>
                   <span className="text-sm font-bold">X</span>
                 </button>
               </div>
