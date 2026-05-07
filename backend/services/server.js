@@ -69,7 +69,7 @@ if (fs.existsSync(uploadsPath)) {
 app.use('/api/publicaciones', publiRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/franquicias', franquiciaRoutes);
-app.use('/api/comentarios', comentarioRoutes);
+app.use('/api/publicaciones/:idPublicacion/comentarios', comentarioRoutes);
 app.use('/api/cartas', cartaRoutes);
 app.use('/api/colecciones', coleccionRoutes);app.use('/api/publicaciones/:idPublicacion/reacciones', reaccionRoutes); // ✅ CORREGIDO
 app.use('/api/reportes', reporteRoutes);
