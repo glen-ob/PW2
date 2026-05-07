@@ -5,10 +5,10 @@ export const crearColeccion = async (req, res) => {
     const { idFranquicia, tipo } = req.body;
     const idUsuario = req.usuario.id;
 
-    // 🔥 Parsear deck correctamente
+
     const deck = req.body.deck ? JSON.parse(req.body.deck) : [];
 
-    // 🔥 Validación básica
+   
     if (!idFranquicia || !tipo) {
       return res.status(400).json({
         success: false,
@@ -16,7 +16,7 @@ export const crearColeccion = async (req, res) => {
       });
     }
 
-    // 🔥 Validación para collection (solo 1 por franquicia)
+   
     if (tipo === 'collection') {
       const existe = await Coleccion.findOne({
         idUsuario,
@@ -32,7 +32,7 @@ export const crearColeccion = async (req, res) => {
       }
     }
 
-    // ✅ Crear colección
+   
     const nuevaColeccion = new Coleccion({
       idUsuario,
       idFranquicia,
@@ -40,7 +40,6 @@ export const crearColeccion = async (req, res) => {
       deck
     });
 
-    // 🔥 GUARDAR
     await nuevaColeccion.save();
 
     res.status(201).json({
@@ -50,7 +49,7 @@ export const crearColeccion = async (req, res) => {
 
   } catch (error) {
 
-    // 🔥 Error índice único
+
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,

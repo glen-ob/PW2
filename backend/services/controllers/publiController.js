@@ -48,12 +48,11 @@ export const crearPublicacion = async (req, res) => {
         let cartasProcesadas = [];
         if (Tipo === 'coleccion') {
 
-            console.log('\n===== VALIDANDO COLECCION =====');
+         
 
             let cartasArray = CartasColeccion;
 
-            console.log('CartasColeccion RAW:', CartasColeccion);
-            console.log('Tipo de CartasColeccion:', typeof CartasColeccion);
+            
 
             if (typeof CartasColeccion === 'string') {
                 try {
@@ -62,7 +61,7 @@ export const crearPublicacion = async (req, res) => {
                     console.log('Cartas parseadas correctamente');
                 } catch (e) {
 
-                    console.log('❌ Error parseando CartasColeccion');
+                    
                     console.log(e);
 
                     cartasArray = [];
@@ -74,7 +73,7 @@ export const crearPublicacion = async (req, res) => {
 
             // Validar que no venga vacío
             if (!cartasArray || cartasArray.length === 0) {
-                console.log('❌ No se recibieron cartas');
+               
 
                 return res.status(400).json({
                     success: false,
@@ -126,7 +125,7 @@ export const crearPublicacion = async (req, res) => {
             // Validar que todas existan
             if (cartasDB.length !== cartasArray.length) {
 
-                console.log('❌ Algunas cartas no existen');
+                
 
                 const idsDB = cartasDB.map(c => c._id.toString());
 
@@ -160,7 +159,7 @@ export const crearPublicacion = async (req, res) => {
 
             if (!todasValidas) {
 
-                console.log('❌ Hay cartas de otra franquicia');
+                
 
                 return res.status(400).json({
                     success: false,
@@ -168,7 +167,7 @@ export const crearPublicacion = async (req, res) => {
                 });
             }
 
-            console.log('✅ Todas las cartas son válidas');
+            
 
             cartasProcesadas = cartasArray;
         }
@@ -275,7 +274,7 @@ export const crearPublicacion = async (req, res) => {
             const nuevaColeccion = await Coleccion.create({
                 idUsuario: usuarioId,
                 idFranquicia: franquiciaId,
-                tipo: 'collection', //aqui se deberá cambiar a dinamico para que tambien pueda ser tipo pool
+                tipo: 'collection', 
                 deck: cartasProcesadas,
                 idPublicacion: nuevaPublicacion._id
                 
@@ -329,7 +328,7 @@ export const obtenerPublicaciones = async (req, res) => {
         }
     }
 
-    // 🔥 Base query
+    
     let publicacionesQuery = Publicacion.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -337,7 +336,7 @@ export const obtenerPublicaciones = async (req, res) => {
       .populate('Idusuario', 'nombre nickname correo fotoPerfil')
       .populate('Franquicia', 'nombre slug');
 
-    // 🔥 Si se pide SOLO colecciones → populate completo
+    
     if (tipo === 'coleccion') {
       publicacionesQuery = publicacionesQuery
         .populate({
@@ -353,7 +352,7 @@ export const obtenerPublicaciones = async (req, res) => {
         });
     }
 
-    // 🔥 Ejecutar query
+    
     const publicaciones = await publicacionesQuery;
 
     const total = await Publicacion.countDocuments(query);
