@@ -28,56 +28,65 @@ const Coleccion = () => {
   const [loadingPublicaciones, setLoadingPublicaciones] = useState(true);
 
   useEffect(() => {
-    const fetchPublicaciones = async () => {
-      try {
-        const res = await axios.get('http://localhost:3000/api/publicaciones?tipo=coleccion');
-        console.log(res.data.publicaciones);
+    
+  const fetchPublicaciones = async () => {
+    try {
+      const res = await axios.get('http://localhost:3000/api/publicaciones?tipo=coleccion');
+      console.log(' Publicaciones recibidas:', res.data.publicaciones);
 
-        // adapta estructura aquí 👇
-        const pubs = res.data.publicaciones.map(p => {
+      const pubs = res.data.publicaciones.map(p => {
+        // Se definen las cartas
+        const cartas = p.Idconjunto?.deck?.length > 0
+          ? p.Idconjunto.deck
+          : p.CartasColeccion || [];
 
-          // Se definen las cartas
-          const cartas =
-            p.Idconjunto?.deck?.length > 0
-              ? p.Idconjunto.deck
-              : p.CartasColeccion || [];
+        console.log(' Cartas encontradas:', cartas.length);
+        console.log(' URLs originales:', cartas.map(c => c.imagen));
 
-          return {
-            id: p._id,
+        return {
+          id: p._id,
+          usuario: p.Idusuario?.nombre || 'Usuario',
+          usuarioId: p.Idusuario?._id,
+          avatar: p.Idusuario?.fotoPerfil
+            ? `http://localhost:3000${p.Idusuario.fotoPerfil}`
+            : null,
+          franquicia: p.Franquicia?.nombre || 'General',
+          titulo: p.Titulo || '',
+          descripcion: p.Texto || '',
+          
+          // CORREGIDO: Construir URL completa para cada imagen
+          imagenes: cartas
+            .map(c => {
+              if (!c.imagen) return null;
+              // Si ya tiene http, usarla directamente
+              if (c.imagen.startsWith('http')) return c.imagen;
+              // Si empieza con /uploads, agregar el dominio
+              if (c.imagen.startsWith('/uploads')) return `http://localhost:3000${c.imagen}`;
+              // Si es solo el nombre del archivo, construir la ruta completa
+              return `http://localhost:3000/uploads/cartas/${c.imagen}`;
+            })
+            .filter(Boolean),
+          
+          likes: p.MeGusta || 0,
+          comentarios: p.Comentarios || [],
+          timestamp: formatearTiempo(p.createdAt)
+        };
+      });
 
-            usuario: p.Idusuario?.nombre || 'Usuario',
-            usuarioId: p.Idusuario?._id,
+      console.log('✨ Publicaciones procesadas:', pubs.map(p => ({
+        titulo: p.titulo,
+        imagenesCount: p.imagenes.length,
+        primeraImagen: p.imagenes[0]
+      })));
 
-            avatar: p.Idusuario?.fotoPerfil
-              ? `http://localhost:3000${p.Idusuario.fotoPerfil}`
-              : null,
+      setPublicaciones(pubs);
 
-            franquicia: p.Franquicia?.nombre || 'General',
-
-            titulo: p.Titulo || '',
-            descripcion: p.Texto || '',
-
-            // 🔥 ahora sí funciona
-            imagenes: cartas
-              .map(c => c.imagen)
-              .filter(Boolean)
-              .map(url => `http://localhost:3000/uploads/cartas/${url}`),
-
-            likes: p.MeGusta || 0,
-            comentarios: p.Comentarios || [],
-
-            timestamp: formatearTiempo(p.createdAt)
-          };
-        });
-
-        setPublicaciones(pubs);
-
-      } catch (error) {
-        console.error('Error cargando publicaciones:', error);
-      } finally {
-        setLoadingPublicaciones(false);
-      }
-    };
+    } catch (error) {
+      console.error('Error cargando publicaciones:', error);
+    } finally {
+      setLoadingPublicaciones(false);
+    }
+  };
 
     fetchPublicaciones();
   }, []);
