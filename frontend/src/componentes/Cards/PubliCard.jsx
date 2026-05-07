@@ -1,3 +1,5 @@
+
+import axios from 'axios';
 import React, { useState } from 'react';
 import { useReaccion } from '../../hooks/useReaccion';
 import { useAuth } from '../../../context/AuthContext';
@@ -17,35 +19,47 @@ const PubliCard = ({ publicacion, abrirModal }) => {
     await toggleLike();
   };
 
-  const handleAgregarComentario = async (e) => {
+const handleAgregarComentario = async (e) => {
     e.preventDefault();
     if (!nuevoComentario.trim()) return;
     
     try {
       const token = localStorage.getItem("token");
+      console.log(' Enviando comentario a:', `http://localhost:3000/api/publicaciones/${publicacion.id}/comentarios`);
+      
       const response = await axios.post(
-        `http://localhost:3000/api/publicaciones/${publicacion.id}/comentario`,
+        `http://localhost:3000/api/publicaciones/${publicacion.id}/comentarios`, 
         { texto: nuevoComentario },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      // Agregar el nuevo comentario a la lista
+      console.log(' Comentario enviado:', response.data);
+      
+     
       const nuevoComentarioObj = {
         id: response.data.comentario._id,
         texto: nuevoComentario,
+        fecha: new Date(),
         usuario: {
           nickname: usuario?.nickname,
+          nombre: usuario?.nombre,
           fotoPerfil: usuario?.fotoPerfil
         }
       };
       
       setComentarios([...comentarios, nuevoComentarioObj]);
       setNuevoComentario('');
+      
+      // Actualizar el contador en la publicación si es necesario
+      if (publicacion.onComentarioAdded) {
+        publicacion.onComentarioAdded();
+      }
     } catch (error) {
-      console.error('Error al agregar comentario:', error);
+      console.error(' Error al agregar comentario:', error);
+      console.error(' Detalles:', error.response?.data);
+      alert('Error al comentar: ' + (error.response?.data?.message || error.message));
     }
-  };
-
+};
   if (!publicacion) return null;
 
   return (

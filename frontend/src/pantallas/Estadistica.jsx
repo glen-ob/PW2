@@ -144,7 +144,7 @@ const Estadistica = () => {
             onClick={() => navigate('/mi-perfil')}
             className="flex items-center gap-2 bg-slate hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-300 border hover:border-red-600"
           >
-            <span>← Volver al perfil</span>
+            <span>Volver</span>
           </button>
 
           <div className="flex gap-2 bg-slate p-1 rounded-lg border">
