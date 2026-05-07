@@ -1,0 +1,89 @@
+import Coleccion from '../models/coleccionModel.js';
+
+export const crearColeccion = async (req, res) => {
+  try {
+    const { idFranquicia, tipo } = req.body;
+    const idUsuario = req.usuario.id;
+
+    // 🔥 Parsear deck correctamente
+    const deck = req.body.deck ? JSON.parse(req.body.deck) : [];
+
+    // 🔥 Validación básica
+    if (!idFranquicia || !tipo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Faltan datos obligatorios'
+      });
+    }
+
+    // 🔥 Validación para collection (solo 1 por franquicia)
+    if (tipo === 'collection') {
+      const existe = await Coleccion.findOne({
+        idUsuario,
+        idFranquicia,
+        tipo: 'collection'
+      });
+
+      if (existe) {
+        return res.status(400).json({
+          success: false,
+          message: 'Ya tienes una colección de esta franquicia'
+        });
+      }
+    }
+
+    // ✅ Crear colección
+    const nuevaColeccion = new Coleccion({
+      idUsuario,
+      idFranquicia,
+      tipo,
+      deck
+    });
+
+    // 🔥 GUARDAR
+    await nuevaColeccion.save();
+
+    res.status(201).json({
+      success: true,
+      coleccion: nuevaColeccion
+    });
+
+  } catch (error) {
+
+    // 🔥 Error índice único
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ya existe una colección de esta franquicia'
+      });
+    }
+
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+export const obtenerColeccionesUsuario = async (req, res) => {
+  try {
+    const usuarioId = req.usuario.id;
+
+    const colecciones = await Coleccion.find({ idUsuario: usuarioId })
+      .populate('deck') // trae las cartas completas
+      .populate('idFranquicia', 'nombre')
+      .sort({ createdAt: 1 });;
+
+    res.json({
+      success: true,
+      colecciones
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};

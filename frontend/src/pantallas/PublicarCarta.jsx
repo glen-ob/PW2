@@ -17,6 +17,10 @@ const PublicarCarta = () => {
   const [precio, setPrecio] = useState('');
   const [cantidad, setCantidad] = useState(1);
 
+  //Esto contiene las cartas que se adjuntaron desde gallery (chris)
+  const [deck, setDeck] = useState([]);
+
+
   //Esta contiene solo la franquicia que selecciona el usaurio (chris)
   const [franquicia, setFranquicia] = useState('');
 
@@ -37,6 +41,10 @@ const PublicarCarta = () => {
     fetchFranquicias();
   }, []);
 
+  useEffect(() => {
+    setSelectedCartas([]);
+    setDeck([]);
+  }, [franquicia]);
 
   const handleTipoChange = (e) => {
     const tipo = e.target.value;
@@ -53,6 +61,11 @@ const PublicarCarta = () => {
 
   const handleSelectCartas = (cartas) => {
     setSelectedCartas(cartas);
+
+    //Se extraen los ID de las cartas seleccionadas (chris _ publicaciones de tipo coleccion)
+    const ids = cartas.map(c => c.id);
+    setDeck(ids);
+
     console.log('Cartas seleccionadas para colección:', cartas);
   };
 
@@ -173,12 +186,7 @@ const PublicarCarta = () => {
       }
 
       if (tipoPublicacion === 'coleccion') {
-        formDataToSend.append('cartasSeleccionadas', JSON.stringify(selectedCartas));
-        selectedCartas.forEach((carta, index) => {
-          formDataToSend.append(`carta_${index}_id`, carta.id);
-          formDataToSend.append(`carta_${index}_nombre`, carta.nombre);
-          formDataToSend.append(`carta_${index}_franquicia`, carta.franquicia);
-        });
+        formDataToSend.append('CartasColeccion', JSON.stringify(deck));
       }
 
       const response = await fetch('http://localhost:3000/api/publicaciones', {
@@ -413,7 +421,13 @@ const PublicarCarta = () => {
                       borderColor: 'var(--border-color)',
                       backgroundColor: selectedCartas.length > 0 ? 'var(--background-slate)' : 'transparent'
                     }}
-                    onClick={() => setShowGalleryModal(true)}
+                    onClick={() => {
+                      if (!franquicia) {
+                        alert('Selecciona una franquicia antes de elegir cartas');
+                        return;
+                      }
+                      setShowGalleryModal(true);
+                    }}
                   >
                     {selectedCartas.length > 0 ? (
                       <div>
@@ -546,13 +560,12 @@ const PublicarCarta = () => {
 
       <Gallery
         isOpen={showGalleryModal}
-        onClose={() => {
-          setShowGalleryModal(false);
-        }}
-        onSelectCartas={(cartas) => {
-          handleSelectCartas(cartas);
-          setShowGalleryModal(false);
-        }}
+        franquicia={franquicia}
+        setFranquicia={setFranquicia}
+        selectedCartas={selectedCartas}
+        setSelectedCartas={setSelectedCartas}
+        onSelectCartas={handleSelectCartas}
+        onClose={() => setShowGalleryModal(false)}
       />
     </>
   );

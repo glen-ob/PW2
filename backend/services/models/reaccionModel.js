@@ -21,7 +21,7 @@ const reaccionSchema = new mongoose.Schema({
     timestamps: true
 });
 
-
+// Índice único para evitar duplicados
 reaccionSchema.index({ idPublicacion: 1, idUsuario: 1 }, { unique: true });
 
 const Reaccion = mongoose.model("Reaccion", reaccionSchema);

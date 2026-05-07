@@ -1,56 +1,105 @@
-import React, { useState } from 'react';
+import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { useReaccion } from '../../hooks/useReaccion';
 import { useAuth } from '../../../context/AuthContext';
 
-const PubliCard = ({ publicacion, abrirModal }) => {
-  const { usuario } = useAuth();
+const PubliCard = ({ 
+  publicacion,
+  abrirModal,  // <-- PROP PARA ABRIR MODAL
+  usuarioActual,
+  tokenActual,
+  onLikeChange,
+  onComentarioChange
+}) => {
+  const { usuario: usuarioContext } = useAuth();
+  const usuario = usuarioActual || usuarioContext;
+  
   const { tieneLike, cantidadLikes, cargando, toggleLike } = useReaccion(
     publicacion.id,
     usuario?.id
   );
   
-  const [comentarios, setComentarios] = useState(publicacion?.comentarios || []);
-  const [nuevoComentario, setNuevoComentario] = useState('');
   const [mostrarComentarios, setMostrarComentarios] = useState(false);
-
-  const handleLike = async () => {
-    await toggleLike();
+  const [nuevoComentario, setNuevoComentario] = useState('');
+  const [comentariosLocal, setComentariosLocal] = useState(publicacion?.comentarios || []);
+  
+  useEffect(() => {
+    if (mostrarComentarios && publicacion.id) {
+      fetchComentarios();
+    }
+  }, [mostrarComentarios, publicacion.id]);
+  
+  const fetchComentarios = async () => {
+    try {
+      const token = tokenActual || localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:3000/api/publicaciones/${publicacion.id}/comentarios`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      const comentariosMapeados = (response.data.comentarios || []).map(c => ({
+        id: c._id,
+        texto: c.texto,
+        fecha: c.createdAt,
+        usuario: {
+          id: c.idUsuario?._id,
+          nickname: c.idUsuario?.nickname,
+          nombre: c.idUsuario?.nombre,
+          fotoPerfil: c.idUsuario?.fotoPerfil
+        }
+      }));
+      
+      setComentariosLocal(comentariosMapeados);
+      
+      if (onComentarioChange) {
+        onComentarioChange(publicacion.id, comentariosMapeados.length);
+      }
+    } catch (error) {
+      console.error('Error cargando comentarios:', error);
+    }
   };
-
+  
+  const handleLike = async () => {
+    const estadoAnterior = tieneLike;
+    await toggleLike();
+    
+    const nuevoContador = estadoAnterior ? cantidadLikes - 1 : cantidadLikes + 1;
+    
+    if (onLikeChange) {
+      onLikeChange(publicacion.id, !estadoAnterior, nuevoContador);
+    }
+  };
+  
   const handleAgregarComentario = async (e) => {
     e.preventDefault();
     if (!nuevoComentario.trim()) return;
     
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `http://localhost:3000/api/publicaciones/${publicacion.id}/comentario`,
+      const token = tokenActual || localStorage.getItem("token");
+      
+      await axios.post(
+        `http://localhost:3000/api/publicaciones/${publicacion.id}/comentarios`, 
         { texto: nuevoComentario },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      // Agregar el nuevo comentario a la lista
-      const nuevoComentarioObj = {
-        id: response.data.comentario._id,
-        texto: nuevoComentario,
-        usuario: {
-          nickname: usuario?.nickname,
-          fotoPerfil: usuario?.fotoPerfil
-        }
-      };
-      
-      setComentarios([...comentarios, nuevoComentarioObj]);
+      await fetchComentarios();
       setNuevoComentario('');
+      
     } catch (error) {
       console.error('Error al agregar comentario:', error);
+      alert('Error al comentar: ' + (error.response?.data?.message || error.message));
     }
   };
-
+  
   if (!publicacion) return null;
-
+  
+  const likesCount = cantidadLikes;
+  const comentariosCount = comentariosLocal.length;
+  
   return (
     <div className="bg-slate-900/60 rounded-xl border border-[#56ab91]/30 overflow-hidden hover:border-[#56ab91]/60 transition-all shadow-lg">
-      {/* Header más compacto */}
+      {/* Header */}
       <div className="flex justify-between items-center p-3">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full overflow-hidden border border-[#56ab91]">
@@ -88,7 +137,7 @@ const PubliCard = ({ publicacion, abrirModal }) => {
         </h2>
       </div>
 
-      {/* Imágenes */}
+      {/* Imágenes - AQUÍ SE USA abrirModal */}
       {publicacion.imagenes && publicacion.imagenes.length > 0 && (
         <div className={`grid gap-0.5 bg-black/20 ${
           publicacion.imagenes.length === 1 ? 'grid-cols-1' :
@@ -102,7 +151,11 @@ const PubliCard = ({ publicacion, abrirModal }) => {
                 publicacion.imagenes.length === 3 && idx === 0 ? 'row-span-2' : ''
               }`}
               style={{ paddingBottom: '60%' }}
-              onClick={() => abrirModal(publicacion, idx)}
+              onClick={() => {
+                if (abrirModal && typeof abrirModal === 'function') {
+                  abrirModal(publicacion, idx);
+                }
+              }}
             >
               <img
                 src={img}
@@ -129,13 +182,13 @@ const PubliCard = ({ publicacion, abrirModal }) => {
           className="flex items-center gap-1 hover:text-pink-500 transition-colors"
         >
           <span>{tieneLike ? '❤️' : '🤍'}</span>
-          <span>{cantidadLikes}</span>
+          <span>{likesCount}</span>
         </button>
         <button 
           onClick={() => setMostrarComentarios(!mostrarComentarios)}
           className="hover:text-emerald-400 transition-colors"
         >
-          {comentarios.length} comentarios
+          {comentariosCount} comentarios
         </button>
       </div>
 
@@ -162,14 +215,13 @@ const PubliCard = ({ publicacion, abrirModal }) => {
         </button>
       </div>
 
-      {/* Sección de comentarios (igual que antes) */}
+      {/* Sección de comentarios */}
       {mostrarComentarios && (
         <div className="px-3 pb-3 pt-1 border-t border-[#56ab91]/20">
-          {/* ... mantener la misma estructura de comentarios ... */}
           <div className="max-h-48 overflow-y-auto space-y-2 mb-3">
-            {comentarios.length > 0 ? (
-              comentarios.map((comentario, idx) => (
-                <div key={idx} className="flex gap-2">
+            {comentariosLocal.length > 0 ? (
+              comentariosLocal.map((comentario) => (
+                <div key={comentario.id} className="flex gap-2">
                   <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
                     <img 
                       src={comentario.usuario?.fotoPerfil || "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"} 
@@ -180,7 +232,7 @@ const PubliCard = ({ publicacion, abrirModal }) => {
                   <div className="flex-1 bg-slate-800/50 rounded-lg px-2 py-1">
                     <div className="flex items-center gap-1 mb-0.5">
                       <span className="font-semibold text-xs text-emerald-400 block">
-                        {comentario.usuario?.nickname || 'Usuario'}
+                        {comentario.usuario?.nickname || comentario.usuario?.nombre || 'Usuario'}
                       </span>
                     </div>
                     <p className="text-gray-300 text-xs text-justify leading-relaxed">

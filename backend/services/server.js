@@ -10,6 +10,10 @@ import publiRoutes from "./routes/publiRoutes.js";
 import reaccionRoutes from './routes/reaccionRoutes.js';
 import franquiciaRoutes from "./routes/franquiciaRoutes.js";
 import comentarioRoutes from "./routes/comentarioRoutes.js";
+import cartaRoutes from "./routes/cartaRoutes.js";
+import coleccionRoutes from "./routes/coleccionRoutes.js";
+import reporteRoutes from './routes/reporteRoutes.js';
+import estadisticaRoutes from './routes/estadisticaRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,54 +32,146 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir archivos estáticos - CORREGIDO
-// La carpeta uploads está al mismo nivel que services
-const uploadsPath = path.join(__dirname, '../uploads');
-app.use('/uploads', express.static(uploadsPath));
+// ============================================
+// CONFIGURACION DE RUTAS DE IMAGENES - CORREGIDO
+// ============================================
 
-console.log(' Directorio actual:', __dirname);
-console.log(' Sirviendo archivos estáticos desde:', uploadsPath);
+// Ruta base de uploads (sube un nivel desde services a backend)
+const uploadsPath = path.join(__dirname, '..', 'uploads');
 
-// Verificar si la carpeta existe
+console.log('========================================');
+console.log('CONFIGURACION DE SERVIDOR');
+console.log('========================================');
+console.log('Directorio actual:', __dirname);
+console.log('Ruta de uploads:', uploadsPath);
+console.log('Existe uploads?', fs.existsSync(uploadsPath));
+
+// Verificar estructura de carpetas
 if (fs.existsSync(uploadsPath)) {
-    console.log(' Carpeta uploads existe');
-    console.log(' Contenido de uploads:', fs.readdirSync(uploadsPath));
+    console.log('Contenido de uploads:', fs.readdirSync(uploadsPath));
     
-    // Verificar subcarpetas
-    const perfilesPath = path.join(uploadsPath, 'perfiles');
-    if (fs.existsSync(perfilesPath)) {
-        console.log(' Contenido de perfiles:', fs.readdirSync(perfilesPath));
+    const cartasPath = path.join(uploadsPath, 'cartas');
+    if (fs.existsSync(cartasPath)) {
+        console.log('Contenido de cartas:', fs.readdirSync(cartasPath));
+        
+        // Verificar subcarpetas
+        const subCarpetas = fs.readdirSync(cartasPath);
+        subCarpetas.forEach(carpeta => {
+            const carpetaPath = path.join(cartasPath, carpeta);
+            if (fs.statSync(carpetaPath).isDirectory()) {
+                const archivos = fs.readdirSync(carpetaPath);
+                console.log(`  ${carpeta}: ${archivos.length} archivos`);
+                if (archivos.length > 0) {
+                    console.log(`    Ejemplo: ${archivos[0]}`);
+                }
+            }
+        });
     } else {
-        console.log(' Carpeta perfiles no existe');
+        console.log('ERROR: No existe carpeta cartas');
     }
 } else {
-    console.log(' Carpeta uploads NO existe');
-    // Crear la carpeta si no existe
-    fs.mkdirSync(uploadsPath, { recursive: true });
-    console.log(' Carpeta uploads creada');
+    console.log('ERROR: No existe carpeta uploads');
 }
 
-// Crear directorios si no existen
-['perfiles', 'publicaciones', 'cartas'].forEach(dir => {
-    const dirPath = path.join(uploadsPath, dir);
-    if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
-        console.log(` Directorio creado: ${dirPath}`);
+// ============================================
+// SERVIR ARCHIVOS ESTATICOS - VERSION CORREGIDA
+// ============================================
+
+// Opcion 1: Servir toda la carpeta uploads (mas generico)
+app.use('/uploads', express.static(uploadsPath, {
+    setHeaders: (res, filePath) => {
+        console.log('Sirviendo archivo:', filePath);
     }
+}));
+
+// Opcion 2: Servir rutas especificas (mas directo)
+app.use('/uploads/cartas', express.static(path.join(uploadsPath, 'cartas')));
+app.use('/uploads/perfiles', express.static(path.join(uploadsPath, 'perfiles')));
+app.use('/uploads/publicaciones', express.static(path.join(uploadsPath, 'publicaciones')));
+
+// Opcion 3: Servir cada subcarpeta individualmente
+app.use('/imagesPokemon', express.static(path.join(uploadsPath, 'cartas', 'imagesPokemon')));
+app.use('/imagesMagic', express.static(path.join(uploadsPath, 'cartas', 'imagesMagic')));
+app.use('/imagesDB', express.static(path.join(uploadsPath, 'cartas', 'imagesDB')));
+app.use('/imagesYugioh', express.static(path.join(uploadsPath, 'cartas', 'imagesYugioh')));
+app.use('/imagesDigimon', express.static(path.join(uploadsPath, 'cartas', 'imagesDigimon')));
+
+// ============================================
+// ENDPOINTS DE DEPURACION
+// ============================================
+
+// Verificar si una imagen especifica existe
+app.get('/debug/imagen/:ruta', (req, res) => {
+    const rutaCompleta = path.join(uploadsPath, 'cartas', req.params.ruta);
+    const existe = fs.existsSync(rutaCompleta);
+    
+    res.json({
+        buscado: req.params.ruta,
+        rutaCompleta: rutaCompleta,
+        existe: existe,
+        uploadsPath: uploadsPath
+    });
 });
 
-// Rutas
+// Listar todas las imagenes disponibles
+app.get('/debug/listar-imagenes', (req, res) => {
+    const cartasPath = path.join(uploadsPath, 'cartas');
+    const resultado = {};
+    
+    if (fs.existsSync(cartasPath)) {
+        const carpetas = fs.readdirSync(cartasPath);
+        carpetas.forEach(carpeta => {
+            const carpetaPath = path.join(cartasPath, carpeta);
+            if (fs.statSync(carpetaPath).isDirectory()) {
+                resultado[carpeta] = fs.readdirSync(carpetaPath);
+            }
+        });
+    }
+    
+    res.json({
+        uploadsPath: uploadsPath,
+        cartasPath: cartasPath,
+        imagenes: resultado
+    });
+});
+
+// Ruta de prueba para imagen
+app.get('/test-imagen', (req, res) => {
+    const testPath = path.join(uploadsPath, 'cartas', 'imagesPokemon', 'bulbasaur.png');
+    const existe = fs.existsSync(testPath);
+    
+    res.send(`
+        <html>
+            <body>
+                <h1>Test de Imagen</h1>
+                <p>Ruta: ${testPath}</p>
+                <p>Existe: ${existe}</p>
+                ${existe ? '<img src="/uploads/cartas/imagesPokemon/bulbasaur.png" />' : '<p>Imagen no encontrada</p>'}
+                <br/>
+                <a href="/debug/listar-imagenes">Ver todas las imagenes</a>
+            </body>
+        </html>
+    `);
+});
+
+// ============================================
+// RUTAS DE LA API
+// ============================================
+
 app.use('/api/publicaciones', publiRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/franquicias', franquiciaRoutes);
-app.use('/api/comentarios', comentarioRoutes);
-app.use('/api/reacciones', reaccionRoutes);
+app.use('/api/publicaciones/:idPublicacion/comentarios', comentarioRoutes);
+app.use('/api/cartas', cartaRoutes);
+app.use('/api/colecciones', coleccionRoutes);
+app.use('/api/publicaciones/:idPublicacion/reacciones', reaccionRoutes);
+app.use('/api/reportes', reporteRoutes);
+app.use('/api/estadisticas', estadisticaRoutes);
 
 // Ruta de prueba
 app.get('/test', (req, res) => {
     res.json({ mensaje: 'Servidor funcionando correctamente' });
 });
-
 
 app.get('/debug/usuario/:id', async (req, res) => {
     try {
@@ -92,7 +188,7 @@ app.get('/debug/usuario/:id', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// Ruta para verificar si una imagen existe (debug)
+
 app.get('/check-image/:filename', (req, res) => {
     const imagePath = path.join(uploadsPath, 'perfiles', req.params.filename);
     if (fs.existsSync(imagePath)) {
@@ -105,6 +201,14 @@ app.get('/check-image/:filename', (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-    console.log(`\ Servidor corriendo en http://localhost:${PORT}`);
-    console.log(` URL base de imágenes: http://localhost:${PORT}/uploads/\n`);
+    console.log(`\n========================================`);
+    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`========================================`);
+    console.log(`\nPrueba estas URLs:`);
+    console.log(`  - http://localhost:${PORT}/test`);
+    console.log(`  - http://localhost:${PORT}/test-imagen`);
+    console.log(`  - http://localhost:${PORT}/debug/listar-imagenes`);
+    console.log(`\nEjemplo de imagen:`);
+    console.log(`  - http://localhost:${PORT}/uploads/cartas/imagesPokemon/bulbasaur.png`);
+    console.log(`\n========================================\n`);
 });

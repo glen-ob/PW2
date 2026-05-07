@@ -61,33 +61,7 @@ const DetalleCarta = () => {
   }, [id]);
 
   
-const fetchComentarios = async () => {
-    try {
-        console.log('Fetching comentarios para publicación:', id);
-        const res = await axios.get(`http://localhost:3000/api/publicaciones/${id}/comentarios`);
-        
-        console.log('Respuesta comentarios:', res.data);
-        
-   
-        const comentariosMapeados = (res.data.comentarios || []).map(c => ({
-            id: c._id,
-            texto: c.texto,
-            fecha: c.fecha,
-            usuario: {
-                id: c.idUsuario?._id,
-                nickname: c.idUsuario?.nickname,
-                nombre: c.idUsuario?.nombre,
-                foto: c.idUsuario?.fotoPerfil
-            }
-        }));
-        
-        console.log('Comentarios mapeados:', comentariosMapeados.length);
-        setComentarios(comentariosMapeados);
-    } catch (error) {
-        console.error('Error cargando comentarios:', error);
-        console.error('Detalles:', error.response?.data);
-    }
-};
+
 
 const handleEnviarComentario = async (e) => {
     e.preventDefault();
@@ -100,24 +74,49 @@ const handleEnviarComentario = async (e) => {
     
     setCargandoComentario(true);
     try {
-        console.log('Enviando comentario:', comentario);
+       
+        
         const response = await axios.post(
-            `http://localhost:3000/api/publicaciones/${id}/comentario`,
+            `http://localhost:3000/api/publicaciones/${id}/comentarios`, 
             { texto: comentario },
             { headers: { Authorization: `Bearer ${token}` } }
         );
         
-        console.log('Respuesta al enviar comentario:', response.data);
         
-        // Actualizar la lista de comentarios
         await fetchComentarios();
         setComentario("");
     } catch (error) {
-        console.error("Error enviando comentario:", error);
-        console.error("Detalles:", error.response?.data);
+        console.error(" Error enviando comentario:", error);
+        console.error(" Detalles:", error.response?.data);
         alert("No se pudo enviar el comentario: " + (error.response?.data?.message || error.message));
     } finally {
         setCargandoComentario(false);
+    }
+};
+
+
+const fetchComentarios = async () => {
+    try {
+       
+        const res = await axios.get(`http://localhost:3000/api/publicaciones/${id}/comentarios`);
+
+        const comentariosMapeados = (res.data.comentarios || []).map(c => ({
+            id: c._id,
+            texto: c.texto,
+            fecha: c.createdAt || c.fecha,
+            usuario: {
+                id: c.idUsuario?._id,
+                nickname: c.idUsuario?.nickname,
+                nombre: c.idUsuario?.nombre,
+                foto: c.idUsuario?.fotoPerfil
+            }
+        }));
+        
+        console.log(' Comentarios mapeados:', comentariosMapeados.length);
+        setComentarios(comentariosMapeados);
+    } catch (error) {
+        console.error(' Error cargando comentarios:', error);
+        console.error(' Detalles:', error.response?.data);
     }
 };
 

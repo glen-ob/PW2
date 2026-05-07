@@ -1,11 +1,13 @@
 import Comentario from '../models/comentarioModel.js';
 import Publicacion from '../models/publiModel.js';
 
-// Obtener comentarios de una publicación
+
 export const obtenerComentarios = async (req, res) => {
     try {
-        const { idPublicacion } = req.query; 
+        const { idPublicacion } = req.params; 
         const { pagina = 1, limite = 20 } = req.query;
+        
+        console.log(' Obteniendo comentarios de publicación:', idPublicacion);
         
         const resultado = await Comentario.obtenerPorPublicacion(
             idPublicacion,
@@ -13,12 +15,19 @@ export const obtenerComentarios = async (req, res) => {
             parseInt(pagina)
         );
         
+     
+        const totalComentarios = await Comentario.countDocuments({ 
+            idPublicacion, 
+            activo: true 
+        });
+        
         res.json({
             success: true,
-            ...resultado
+            ...resultado,
+            totalComentarios 
         });
     } catch (error) {
-        console.error('Error obteniendo comentarios:', error);
+        console.error(' Error obteniendo comentarios:', error);
         res.status(500).json({ 
             success: false, 
             message: error.message 
@@ -26,11 +35,18 @@ export const obtenerComentarios = async (req, res) => {
     }
 };
 
-// Crear comentario
 export const crearComentario = async (req, res) => {
     try {
-        const { idPublicacion, texto, comentarioPadre } = req.body;
-        const usuarioId = req.usuario.id;
+        const { texto, comentarioPadre } = req.body;
+        const { idPublicacion } = req.params;
+        const usuarioId = req.usuario.id; 
+        
+        console.log('Creando comentario:', {
+            idPublicacion,
+            usuarioId,
+            texto: texto?.substring(0, 30),
+            esRespuesta: !!comentarioPadre
+        });
         
         // Verificar que la publicación existe
         const publicacion = await Publicacion.findById(idPublicacion);
@@ -41,6 +57,7 @@ export const crearComentario = async (req, res) => {
             });
         }
         
+        // Crear el comentario
         const comentario = new Comentario({
             idUsuario: usuarioId,
             idPublicacion,
@@ -50,18 +67,22 @@ export const crearComentario = async (req, res) => {
         });
         
         await comentario.save();
+        console.log('Comentario guardado en BD:', comentario._id);
         
-        // Si es respuesta, agregar al padre
+      
         if (comentarioPadre) {
             const comentarioPadreDoc = await Comentario.findById(comentarioPadre);
             if (comentarioPadreDoc) {
                 await comentarioPadreDoc.agregarRespuesta(comentario._id);
+                console.log('📎 Respuesta agregada al comentario padre');
             }
         }
         
+       
         await comentario.populate('idUsuario', 'nombre nickname fotoPerfil');
         
-        // También agregar comentario a la publicación (para compatibilidad con modelo existente)
+       
+        if (!publicacion.Comentarios) publicacion.Comentarios = [];
         publicacion.Comentarios.push({
             Idusuario: usuarioId,
             Texto: texto,
@@ -69,13 +90,20 @@ export const crearComentario = async (req, res) => {
         });
         await publicacion.save();
         
+
+        if (publicacion.totalComentarios !== undefined) {
+            publicacion.totalComentarios = (publicacion.totalComentarios || 0) + 1;
+            await publicacion.save();
+        }
+        
         res.status(201).json({
             success: true,
             message: 'Comentario agregado exitosamente',
             comentario
         });
+        
     } catch (error) {
-        console.error('Error creando comentario:', error);
+        console.error(' Error creando comentario:', error);
         res.status(500).json({ 
             success: false, 
             message: error.message 
@@ -84,8 +112,6 @@ export const crearComentario = async (req, res) => {
 };
 
 
-
-// Eliminar comentario-no hay esa opcion en el fronten, pero se deja para futuras implementaciones (como eliminar comentario por parte del admin o el mismo usuario)
 export const eliminarComentario = async (req, res) => {
     try {
         const { id } = req.params;
@@ -100,7 +126,7 @@ export const eliminarComentario = async (req, res) => {
             });
         }
         
-        // Verificar permisos
+        
         if (comentario.idUsuario.toString() !== usuarioId && req.usuario.rol !== 'admin') {
             return res.status(403).json({ 
                 success: false, 

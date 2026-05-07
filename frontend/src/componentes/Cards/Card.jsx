@@ -1,12 +1,29 @@
-// Card.jsx - Versión completa
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Heart, MessageCircle } from 'lucide-react';
 import { useReaccion } from '../../hooks/useReaccion';
 import { useAuth } from '../../../context/AuthContext';
-
+import axios from 'axios'; 
 const Card = ({ card, onClick }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const { tieneLike, cantidadLikes, cargando, toggleLike } = useReaccion(card.id);
+  const [totalComentarios, setTotalComentarios] = useState(card.comentariosCount || 0);
+
+
+  const fetchComentariosCount = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3000/api/publicaciones/${card.id}/comentarios`);
+      const count = response.data.totalComentarios || response.data.comentarios?.length || 0;
+      setTotalComentarios(count);
+      
+    } catch (error) {
+      console.error('Error obteniendo contador de comentarios:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchComentariosCount();
+  }, [card.id]);
 
   const handleLikeClick = async (e) => {
     e.stopPropagation();
@@ -14,9 +31,8 @@ const Card = ({ card, onClick }) => {
       alert("Inicia sesión para dar like");
       return;
     }
-    console.log('Click like en card - Estado actual:', tieneLike);
+
     await toggleLike();
-    console.log('Después de toggle - Nuevo estado:', tieneLike);
   };
 
   return (
@@ -80,7 +96,7 @@ const Card = ({ card, onClick }) => {
               className="flex items-center gap-1 hover:text-sky-400 transition-all"
             >
               <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span className="text-[8px] sm:text-[9px] font-medium">{card.comentariosCount || 0}</span>
+              <span className="text-[8px] sm:text-[9px] font-medium">{totalComentarios}</span> {/* ✅ Mostrar contador real */}
             </button>
           </div>
         </div>

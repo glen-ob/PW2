@@ -6,8 +6,6 @@ import {
     crearPublicacion,
     actualizarPublicacion,
     eliminarPublicacion,
-    toggleReaccion,
-    obtenerMiLike,
     agregarComentario,
     eliminarComentario
 } from '../controllers/publiController.js';
@@ -15,6 +13,7 @@ import { autenticarToken } from '../middleware/authMiddleware.js';
 import { uploadPublicacionImages } from '../config/upload.js';
 import { validarPublicacion, sanitizarPublicacion, validarComentario } from '../middleware/publiMiddleware.js';
 import Publicacion from '../models/publiModel.js'; 
+
 const router = express.Router();
 
 // Rutas públicas (solo lectura)
@@ -42,7 +41,7 @@ router.delete('/:id',
     eliminarPublicacion
 );
 
-router.post('/:id/reacciones', autenticarToken, toggleReaccion);
+
 router.get('/:id/reacciones', async (req, res) => {
     try {
         const { id } = req.params;
@@ -52,9 +51,8 @@ router.get('/:id/reacciones', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
-router.get('/:id/reacciones/mi-reaccion', autenticarToken, obtenerMiLike);
 
-
+// Comentarios
 router.get('/:id/comentarios', async (req, res) => {
     try {
         const { id } = req.params;
@@ -65,7 +63,6 @@ router.get('/:id/comentarios', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Publicación no encontrada' });
         }
         
-     
         const comentarios = publicacion.Comentarios.map(c => ({
             _id: c._id,
             texto: c.Texto,
@@ -73,14 +70,12 @@ router.get('/:id/comentarios', async (req, res) => {
             idUsuario: c.Idusuario  
         }));
         
-        
         res.json({ success: true, comentarios });
     } catch (error) {
         console.error('Error obteniendo comentarios:', error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
-
 
 router.post('/:id/comentario', 
     autenticarToken,
