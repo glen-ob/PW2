@@ -86,3 +86,34 @@ export const obtenerColeccionesUsuario = async (req, res) => {
     });
   }
 };
+
+export const obtenerColeccionesPorUsuario = async (req, res) => {
+
+  try {
+
+    const { userId } = req.params;
+
+    const colecciones = await Coleccion.find({
+      idUsuario: userId
+    })
+    .populate('deck')
+    .populate('idFranquicia', 'nombre')
+    .sort({ createdAt: 1 });
+
+    res.json({
+      success: true,
+      colecciones
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo colecciones'
+    });
+
+  }
+
+};

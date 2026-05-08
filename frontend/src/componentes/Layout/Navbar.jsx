@@ -56,8 +56,8 @@ const Navbar = () => {
         setMobileMenuOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   const verPerfilUsuario = (usuarioEncontrado) => {
@@ -199,6 +199,7 @@ const Navbar = () => {
                 ))}
               </div>
             )}
+
           </div>
           
           {/* Sección derecha: Temas + Usuario Desktop */}
