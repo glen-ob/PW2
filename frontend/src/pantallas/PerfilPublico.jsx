@@ -1,9 +1,12 @@
-// src/pantallas/PerfilPublico.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../componentes/Layout/navbar';
 import Avatar from '../componentes/Avatar';
+import CartaConEfecto from '../componentes/Cards/CartaConEfecto';
+import '../App.css';
+import '../pantallas/index.css';
+import '../componentes/Cards/cartas_efecto.css';
 
 const PerfilPublico = () => {
   const { userId } = useParams();
@@ -11,9 +14,18 @@ const PerfilPublico = () => {
   const [usuario, setUsuario] = useState(null);
   const [cartasUsuario, setCartasUsuario] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingCartas, setLoadingCartas] = useState(false);
+  const [loadingCartas, setLoadingCartas] = useState(true);
   const [carruselIndex, setCarruselIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  //Para hacer carruseles independientes
+  const [carruseles, setCarruseles] = useState({});
+  const getCarrusel = (colId, total) => {
+    return carruseles[colId] || { index: 0, animando: false, total };
+  };
+
+  //Aquí se guardarán las collections del usuario
+  const [collections, setCollections] = useState([]);
 
   const formatearFecha = (fecha) => {
     if (!fecha) return 'Fecha no disponible';
@@ -46,76 +58,120 @@ const PerfilPublico = () => {
     fetchUsuario();
   }, [userId, navigate]);
 
-  useEffect(() => {
-    const fetchColeccion = async () => {
-      if (usuario && usuario._id) {
-        setLoadingCartas(true);
+    useEffect(() => {
+      const fetchColecciones = async () => {
         try {
-          const response = await axios.get(`http://localhost:3000/api/usuarios/publico/${usuario._id}/coleccion`);
-          setCartasUsuario(response.data);
+
+          const res = await axios.get(
+            `http://localhost:3000/api/colecciones/usuario/${userId}`
+          );
+
+          const colecciones = res.data.colecciones;
+
+          setCollections(colecciones);
+
+          if (colecciones.length > 0) {
+
+            const cartas = colecciones[0].deck.map(c => ({
+              id: c._id,
+              nombre: c.nombre,
+              imagen: c.imagen,
+              rareza: c.rareza || 'N/A'
+            }));
+
+            setCartasUsuario(cartas);
+          }
+
         } catch (error) {
-          console.warn('No se pudo obtener la colección:', error.message);
-          setCartasUsuario([]);
+          console.error('Error cargando colecciones:', error);
         } finally {
           setLoadingCartas(false);
         }
+      };
+
+      if (userId) {
+        fetchColecciones();
       }
-    };
 
-    if (usuario) {
-      fetchColeccion();
-    }
-  }, [usuario]);
-
-  useEffect(() => {
-    setCarruselIndex(0);
-    setIsAnimating(false);
-  }, [usuario]);
+    }, [userId]);
 
   const cartasMostrar = cartasUsuario.slice(0, 10);
   const totalCartas = cartasMostrar.length;
 
-  const siguienteCarrusel = () => {
-    if (!isAnimating && totalCartas > 0) {
-      setIsAnimating(true);
-      setCarruselIndex((prev) => (prev + 1) % totalCartas);
-      setTimeout(() => setIsAnimating(false), 500);
+
+  const siguienteCarrusel = (colId, total) => {
+    const carrusel = getCarrusel(colId, total);
+
+    if (!carrusel.animando && total > 0) {
+      setCarruseles(prev => ({
+        ...prev,
+        [colId]: {
+          ...carrusel,
+          animando: true,
+          index: (carrusel.index + 1) % total
+        }
+      }));
+
+      setTimeout(() => {
+        setCarruseles(prev => ({
+          ...prev,
+          [colId]: {
+            ...prev[colId],
+            animando: false
+          }
+        }));
+      }, 500);
     }
   };
 
-  const anteriorCarrusel = () => {
-    if (!isAnimating && totalCartas > 0) {
-      setIsAnimating(true);
-      setCarruselIndex((prev) => (prev - 1 + totalCartas) % totalCartas);
-      setTimeout(() => setIsAnimating(false), 500);
+  const anteriorCarrusel = (colId, total) => {
+    const carrusel = getCarrusel(colId, total);
+
+    if (!carrusel.animando && total > 0) {
+      setCarruseles(prev => ({
+        ...prev,
+        [colId]: {
+          ...carrusel,
+          animando: true,
+          index: (carrusel.index - 1 + total) % total
+        }
+      }));
+
+      setTimeout(() => {
+        setCarruseles(prev => ({
+          ...prev,
+          [colId]: {
+            ...prev[colId],
+            animando: false
+          }
+        }));
+      }, 500);
     }
   };
 
-  const getCartaStyle = (index) => {
-    let relativeIndex = (index - carruselIndex + totalCartas) % totalCartas;
 
-    if (relativeIndex > totalCartas / 2) {
-      relativeIndex = relativeIndex - totalCartas;
+
+  const getCartaStyle = (idx, colId, total) => {
+    const { index } = getCarrusel(colId, total);
+
+    let relativeIndex = (idx - index + total) % total;
+
+    if (relativeIndex > total / 2) {
+      relativeIndex -= total;
     }
 
     const position = relativeIndex;
-    const absolutePosition = Math.abs(position);
-
-    const scale = position === 0 ? 1.2 : 1 - (absolutePosition * 0.15);
-    const opacity = position === 0 ? 1 : Math.max(0.4, 1 - (absolutePosition * 0.3));
-    const zIndex = position === 0 ? 20 : 10 - absolutePosition;
-    const translateX = position * 220;
-    const rotateY = position * -25;
-    const blur = position === 0 ? 0 : absolutePosition * 2;
+    const abs = Math.abs(position);
 
     return {
-      transform: `translateX(${translateX}px) rotateY(${rotateY}deg) scale(${scale})`,
-      opacity: opacity,
-      zIndex: zIndex,
-      filter: `blur(${blur}px)`,
+      transform: `translateX(${position * 220}px) rotateY(${position * -25}deg) scale(${position === 0 ? 1.2 : 1 - abs * 0.15})`,
+      opacity: position === 0 ? 1 : Math.max(0.4, 1 - abs * 0.3),
+      zIndex: position === 0 ? 20 : 10 - abs,
+      filter: `blur(${position === 0 ? 0 : abs * 2}px)`,
       transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
     };
   };
+
 
   if (loading) {
     return (
@@ -181,87 +237,98 @@ const PerfilPublico = () => {
           Colección de {usuario.nombre}
         </h2>
         
-        {loadingCartas ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
-          </div>
-        ) : cartasMostrar.length > 0 ? (
-          <div className="relative min-h-[500px] flex items-center justify-center">
-            <div className="relative w-full flex justify-center items-center" style={{ perspective: '1200px' }}>
-              <div className="relative flex justify-center items-center" style={{ height: '450px' }}>
-                {cartasMostrar.map((carta, idx) => {
-                  const style = getCartaStyle(idx);
-                  const isCenter = (idx - carruselIndex + totalCartas) % totalCartas === 0;
+        {collections.map((col) => {
+          const cartas = col.deck.map(c => ({
+            id: c._id,
+            nombre: c.nombre,
+            imagen: c.imagenUrl,
+            rareza: c.rareza || 'N/A',
+            descripcion: c.descripcion || 'Sin descripción'
+          }));
 
-                  return (
-                    <div
-                      key={carta.id || idx}
-                      className="absolute cursor-pointer transition-all duration-500"
-                      style={style}
-                    >
-                      <div className={`relative w-[220px] h-[320px] rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 ${
-                        isCenter 
-                          ? 'shadow-[0_0_30px_rgba(86,171,145,0.5)] ring-2 ring-emerald-400' 
-                          : 'shadow-lg hover:shadow-xl'
-                      }`}>
-                        <img
-                          src={carta.imagen || 'https://via.placeholder.com/220x320?text=Sin+imagen'}
-                          alt={carta.nombre}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/220x320?text=Sin+imagen';
-                          }}
-                        />
-                        
-                        <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 ${
-                          isCenter ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                        }`}>
-                          <div className="absolute bottom-0 left-0 right-0 p-4">
-                            <p className="text-white font-bold text-lg mb-1">{carta.nombre}</p>
-                            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                              carta.rareza === 'Legendaria' ? 'bg-yellow-500 text-black' :
-                              carta.rareza === 'Épica' ? 'bg-purple-500 text-white' :
-                              carta.rareza === 'Rara' ? 'bg-blue-500 text-white' :
-                              'bg-gray-500 text-white'
-                            }`}>
-                              {carta.rareza || 'Común'}
-                            </span>
-                          </div>
-                        </div>
+          const cartasMostrar = cartas.slice(0, 10);
+          const total = cartasMostrar.length;
+          const { index } = getCarrusel(col._id, total);
+
+          return (
+            <div key={col._id} className="mb-12">
+              <h2 className="text-2xl font-bold highlight">
+                {col.idFranquicia?.nombre || 'Colección'}
+              </h2>
+
+              {!loadingCartas && cartasMostrar.length > 0 && (
+                <div className="mb-12">
+                  <div className="flex justify-between items-center mb-6 px-4">
+                    
+                    
+                  </div>
+
+                  <div className="relative min-h-[500px] flex items-center justify-center">
+                    <div className="relative w-full flex justify-center items-center" style={{ perspective: '1200px', overflow: 'visible' }}>
+                      <div className="relative flex justify-center items-center" style={{ height: '450px' }}>
+
+                        {cartasMostrar.map((carta, idx) => {
+                          const style = getCartaStyle(idx, col._id, total);
+                          const isCenter = (idx  - index + total) % total === 0;
+                          
+                          const handleCardNavigation = () => {
+                            const diff = (idx - index + total) % total;
+                            if (diff <= total / 2) {
+                              for (let i = 0; i < diff; i++) {
+                                siguienteCarrusel(col._id, total);
+                              }
+                            } else {
+                              for (let i = 0; i < total - diff; i++) {
+                                anteriorCarrusel(col._id, total);
+                              }
+                            }
+                          };
+
+                          return (
+                            <div
+                              key={carta.id}
+                              className="absolute transition-all duration-500"
+                              style={style}
+                            >
+                              <CartaConEfecto 
+                                carta={carta}
+                                isCenter={isCenter}
+                                onClick={handleCardNavigation}
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {totalCartas > 1 && (
-              <>
-                <button
-                  onClick={anteriorCarrusel}
-                  className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-emerald-400 hover:bg-emerald-600 transition-all z-30 hover:scale-110"
-                >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                
-                <button
-                  onClick={siguienteCarrusel}
-                  className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-emerald-400 hover:bg-emerald-600 transition-all z-30 hover:scale-110"
-                >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </>
-            )}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-slate-800/30 rounded-2xl">
-            <p className="text-gray-400">Este usuario aún no tiene cartas en su colección</p>
-          </div>
-        )}
+                    {total > 0 && (
+                      <>
+                        <button
+                          onClick={() => anteriorCarrusel(col._id, total)}
+                          className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border hover:bg-emerald-600 transition-all z-30 hover:scale-110"
+                        >
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => siguienteCarrusel(col._id, total)}
+                          className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center border-2 hover:bg-emerald-600 transition-all z-30 hover:scale-110"
+                        >
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          );
+        })}
+
       </div>
     </div>
   );
