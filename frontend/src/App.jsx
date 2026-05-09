@@ -5,7 +5,7 @@ import ErrorBoundary from './componentes/ErrorBoundary';
 import './App.css'
 
 // Importar pantallas
-import Home from './pantallas/home'; 
+import Home from './pantallas/home';
 import AuthPage from './pantallas/AuthPage';
 import Perfil from './pantallas/Perfil';
 import PerfilPublico from './pantallas/PerfilPublico';
@@ -20,7 +20,7 @@ import Feed from './pantallas/Feed';
 // Componente para rutas protegidas
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -31,11 +31,11 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;
   }
-  
+
   return children;
 };
 
@@ -47,57 +47,57 @@ const AppRoutes = () => {
       <Route path="/" element={<Home />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/perfil/:userId?" element={<PerfilPublico />} />
-      
+
       {/* Rutas protegidas */}
       <Route path="/mi-perfil" element={
         <ProtectedRoute>
           <Perfil />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/editar-perfil" element={
         <ProtectedRoute>
           <EditarPerfil />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/coleccion" element={
         <ProtectedRoute>
           <Coleccion />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/configuracion" element={
         <ProtectedRoute>
           <Configuracion />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/estadistica" element={
         <ProtectedRoute>
           <Estadistica />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/publicar" element={
         <ProtectedRoute>
           <PublicarCarta />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/detalle/:tipo/:id" element={
         <ProtectedRoute>
           <DetalleCarta />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/ventas" element={
         <ProtectedRoute>
           <Feed />
         </ProtectedRoute>
       } />
-      
-   
+
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -108,7 +108,8 @@ function App() {
   const selectedTheme = localStorage.getItem("theme");
 
   if (selectedTheme) {
-    document.querySelector("body").setAttribute("data-theme", selectedTheme);
+    document.documentElement.setAttribute("data-theme", selectedTheme);
+
   }
 
   return (
@@ -117,9 +118,9 @@ function App() {
         <AuthProvider>
           <AppRoutes />
         </AuthProvider>
-        </ErrorBoundary>
-      </BrowserRouter>
-  
+      </ErrorBoundary>
+    </BrowserRouter>
+
   );
 }
 

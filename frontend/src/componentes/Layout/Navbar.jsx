@@ -4,6 +4,8 @@ import { useAuth } from '../../../context/AuthContext';
 import axios from 'axios';
 import ThemeOption from '../Toggle/ThemeOptions';
 import Avatar from '../Avatar';
+import '../../App.css'
+import '../../pantallas/index.css';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -138,7 +140,7 @@ const Navbar = () => {
                 className="w-10 h-10 button rounded-md flex items-center justify-center hover:bg-[--hover-button-color] transition-all group"
                 title="Publicar carta"
               >
-                <svg className="w-6 h-6 invert opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 opacity-80 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-white/70 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -245,7 +247,7 @@ const Navbar = () => {
                 className="w-8 h-8 button rounded-full flex items-center justify-center hover:bg-red-600/20 transition-all group"
                 title="Cerrar sesión"
               >
-                <svg className="w-4 h-4 invert opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 opacity-70 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
               </button>
@@ -385,7 +387,7 @@ const Navbar = () => {
                       }}
                       className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/10 transition-all"
                     >
-                      <svg className="w-5 h-5 invert opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                       <span className="primary-text text-sm">Publicar</span>

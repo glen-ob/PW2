@@ -132,14 +132,14 @@ const PubliCard = ({ publicacion, abrirModal }) => {
           <span className={`text-base ${liked ? 'text-pink-500' : ''}`}>
             {liked ? '❤️' : '🤍'}
           </span>
-          <span className="font-medium">Me gusta</span>
+          <span className="font-medium highlight">Me gusta</span>
         </button>
         <button 
           onClick={() => setMostrarComentarios(!mostrarComentarios)}
           className="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg hover:bg-slate-800 transition-colors text-gray-300 hover:text-emerald-400 text-xs"
         >
           <span className="text-base">💬</span>
-          <span className="font-medium">Comentar</span>
+          <span className="font-medium highlight">Comentar</span>
         </button>
       </div>
 
@@ -160,7 +160,7 @@ const PubliCard = ({ publicacion, abrirModal }) => {
                   </div>
                   <div className="flex-1 bg-slate-800/50 rounded-lg px-2 py-1">
                   <div className="flex items-center gap-1 mb-0.5">
-                    <span className="font-semibold text-xs text-emerald-400 block">
+                    <span className="font-semibold focus text-xs block">
                       {comentario.usuario}
                     </span>
                   </div>

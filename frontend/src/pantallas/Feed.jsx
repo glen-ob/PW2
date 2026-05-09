@@ -167,16 +167,16 @@ const Feed = () => {
                 </div>
               )}
               
-              <div className="bg-slate-900/40 p-2 sm:p-3 md:p-5 rounded-2xl sm:rounded-3xl md:rounded-[32px] border-2 border-[#56ab91]/20 shadow-2xl mt-3 sm:mt-4">
+              <div className="bg-slate-900/50 p-2 sm:p-3 md:p-5 rounded-2xl sm:rounded-3xl md:rounded-[32px] border-2 border shadow-2xl mt-3 sm:mt-4">
                 {sortedCards.length === 0 ? (
                   <div className="text-center py-12">
-                    <p className="text-gray-400">No hay cartas que coincidan con los filtros</p>
+                    <p>No hay cartas que coincidan con los filtros</p>
                     <button 
                       onClick={() => {
                         setFilterType('all');
                         setSelectedFandoms([]);
                       }}
-                      className="mt-3 text-sm highlight underline"
+                      className="mt-3 font-bold text-sm highlight underline"
                     >
                       Limpiar filtros
                     </button>

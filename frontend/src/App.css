@@ -1,24 +1,4 @@
-:root,
-#theme-dark {
-  background-image: url("../img/dark-bg.png");
-  --primary-text-color: #000000;
-  --secondary-text-color: #9CA3AF;
-  --link-color: #61dafb;
-  --border-color: #56ab91;
-  --hightlight-text-color: #34D399;
-  --paragraph-color: #A9A9A9;
-  --header-color: #56ab91;
-  --button-color: #2d2a3e;
-  --hover-button-color: #054231;
-  --background-slate: #102e258d;
-  --search-bar: #3d7a67;
-  --search-result: #2d2a3e;
-  --search-hover: #3d7a67;
-  --focus-color: #4ade80;
-}
-
-[data-theme="light"],
-#theme-light {
+[data-theme="light"] {
   background-image: url("../img/light-bg.png");
   --primary-text-color: #ffffff;
   --secondary-text-color: #606060;
@@ -36,8 +16,26 @@
   --focus-color: #4ade80;
 }
 
-[data-theme="pokemon"],
-#theme-pokemon {
+
+[data-theme="dark"] {
+  background-image: url("../img/dark-bg.png");
+  --primary-text-color: #ffffff;
+  --secondary-text-color: #9CA3AF;
+  --link-color: #61dafb;
+  --border-color: #56ab91;
+  --hightlight-text-color: #34D399;
+  --paragraph-color: #A9A9A9;
+  --header-color: #56ab91;
+  --button-color: #2d2a3e;
+  --hover-button-color: #054231;
+  --background-slate: #102e258d;
+  --search-bar: #3d7a67;
+  --search-result: #2d2a3e;
+  --search-hover: #3d7a67;
+  --focus-color: #4ade80;
+}
+
+[data-theme="pokemon"] {
   background-image: url("../img/pokemon-bg.jpg");
   --primary-text-color: #ffffff;
   --secondary-text-color: #606060;
@@ -53,11 +51,17 @@
   --search-result: #273d9e;
   --search-hover: #1c267c;
   --focus-color: #4aa3de;
-
 }
 
-[data-theme="digimon"],
-#theme-digimon {
+@media (max-width: 600px) {
+  [data-theme="pokemon"] {
+    background-image: url("../img/mobile-pokemon-bg.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+}
+
+[data-theme="digimon"] {
   background-image: url("../img/digimon-bg.jpg");
   --primary-text-color: #ffffff;
   --secondary-text-color: #606060;
@@ -73,11 +77,16 @@
   --search-result: #303991;
   --search-hover: #2637ce;
   --focus-color: #4a59de;
-
+}
+@media (max-width: 600px) {
+  [data-theme="digimon"] {
+    background-image: url("../img/mobile-digimon-bg.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
 }
 
-[data-theme="dragonball"],
-#theme-dragonball {
+[data-theme="dragonball"] {
   background-image: url("../img/dragonball-bg.jpg");
   --primary-text-color: #ffffff;
   --secondary-text-color: #606060;
@@ -94,20 +103,20 @@
   --search-hover: #ad631e;
   --focus-color: #de9e4a;
 }
-
-.App {
-  background-color: if(style(data-theme: dragonball): url("../img/dragonball-bg.jpg");
-      style(data-theme: digimon): url("../img/digimon-bg.jpg");
-      style(data-theme: pokemon): url("../img/pokemon-bg.jpg");
-      style(data-theme: light): url("../img/light-bg.png");
-      style(data-theme: dark): url("../img/dark-bg.png");
-      else: none;
-    );
-  text-align: center;
-  transition: background-color 250ms ease-in-out;
+@media (max-width: 600px) {
+  [data-theme="dragonball"] {
+    background-image: url("../img/mobile-dragonball-bg.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
 }
 
-.theme-options {
+.App {
+  text-align: center;
+  transition: background-color 0.25s ease-in-out, background-image 0.25s ease-in-out;
+}
+
+/* .theme-options {
   display: flex;
   gap: 10px;
 }
@@ -118,14 +127,44 @@
   border: 1px solid;
   border-radius: 50%;
   cursor: pointer;
+} */
+
+.theme-options {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
 }
 
+.theme-option {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-option:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.theme-option.active {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+
 .header {
-  background-color: var(--header-color);
+  background-color: var(--header-color) !important;
+  /* Force the variable to apply */
+  transition: background-color 0.25s ease-in-out;
+  /* Smooth transition */
 }
 
 .border {
-  border-color: var(--header-color);
+  border-color: var(--header-color) !important;
+  /* Force the variable to apply */
+  transition: background-color 0.25s ease-in-out;
+  /* Smooth transition */
 }
 
 .bg-slate {
@@ -133,7 +172,10 @@
 }
 
 .button {
-  background-color: var(--button-color);
+  background-color: var(--button-color) !important;
+  /* Force the variable to apply */
+  transition: background-color 0.25s ease-in-out;
+  /* Smooth transition */
 }
 
 .button:hover {
@@ -142,7 +184,10 @@
 
 h1,
 .primary-text {
-  color: var(--primary-text-color);
+  color: var(--primary-text-color) !important;
+  /* Force the variable to apply */
+  transition: background-color 0.25s ease-in-out;
+  /* Smooth transition */
 }
 
 p {
@@ -150,7 +195,10 @@ p {
 }
 
 .highlight {
-  color: var(--hightlight-text-color)
+  color: var(--hightlight-text-color) !important;
+  /* Force the variable to apply */
+  transition: background-color 0.25s ease-in-out;
+  /* Smooth transition */
 }
 
 .search-bar {
@@ -169,6 +217,11 @@ p {
 .button-focus {
   color: var(--hightlight-text-color);
 }
+
+.focus {
+  color: var(--focus-color);
+}
+
 
 .App-logo {
   height: 40vmin;
@@ -282,11 +335,12 @@ div[class*="fixed"]:not(.modal-backdrop) {
 
 
 .no-scrollbar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
+
 .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .filter-header-text {
@@ -310,14 +364,15 @@ div[class*="fixed"]:not(.modal-backdrop) {
 }
 
 @media (max-width: 768px) {
-  button, 
+
+  button,
   [role="button"],
   .clickable,
   label {
     min-height: var(--touch-target-size);
     cursor: pointer;
   }
-  
+
   input[type="checkbox"],
   input[type="radio"] {
     transform: scale(1.2);
@@ -330,8 +385,9 @@ html {
 }
 
 @media (max-width: 768px) {
-  input, 
-  select, 
+
+  input,
+  select,
   textarea {
     font-size: 16px !important;
   }
@@ -342,6 +398,7 @@ html {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -361,6 +418,7 @@ html {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
@@ -373,20 +431,41 @@ html {
 }
 
 @media (min-width: 640px) {
-  .sm\:block { display: block; }
-  .sm\:hidden { display: none; }
-  .sm\:flex-row { flex-direction: row; }
+  .sm\:block {
+    display: block;
+  }
+
+  .sm\:hidden {
+    display: none;
+  }
+
+  .sm\:flex-row {
+    flex-direction: row;
+  }
 }
 
 @media (min-width: 768px) {
-  .md\:block { display: block; }
-  .md\:hidden { display: none; }
-  .md\:w-\[260px\] { width: 260px; }
+  .md\:block {
+    display: block;
+  }
+
+  .md\:hidden {
+    display: none;
+  }
+
+  .md\:w-\[260px\] {
+    width: 260px;
+  }
 }
 
 @media (min-width: 1024px) {
-  .lg\:block { display: block; }
-  .lg\:hidden { display: none; }
+  .lg\:block {
+    display: block;
+  }
+
+  .lg\:hidden {
+    display: none;
+  }
 }
 
 @media (min-width: 475px) {

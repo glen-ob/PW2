@@ -25,7 +25,7 @@ export const crearUsuario = async (req, res) => {
         // Verificar campos requeridos
         if (!nombre || !nickname || !correo || !contrasena) {
             return res.status(400).json({ 
-                error: 'Todos los campos son requeridos: nombre, nickname, correo, contraseña' 
+                error: 'Todos los campos son requeridos: nombre, nickname, correo y contraseña' 
             });
         }
 
@@ -210,13 +210,13 @@ export const loginUsuario = async (req, res) => {
         // Buscar usuario por correo
         const usuario = await Usuario.findOne({ correo });
         if (!usuario) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
+            return res.status(401).json({ error: 'Este correo no está registrado' });
         }
 
         // Verificar contraseña
         const contrasenaValida = await bcrypt.compare(contrasena, usuario.contrasena);
         if (!contrasenaValida) {
-            return res.status(401).json({ error: 'Credenciales inválidas' });
+            return res.status(401).json({ error: 'Su contraseña está incorrecta' });
         }
 
         // Generar token
