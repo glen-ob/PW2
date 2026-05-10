@@ -11,9 +11,9 @@ const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { login } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     nombre: '',
     nickname: '',
@@ -38,12 +38,12 @@ const AuthPage = () => {
         setError('Por favor selecciona una imagen válida');
         return;
       }
-      
+
       if (file.size > 5 * 1024 * 1024) {
         setError('La imagen no debe superar los 5MB');
         return;
       }
-      
+
       setPreview(URL.createObjectURL(file));
       setFormData(prev => ({
         ...prev,
@@ -60,7 +60,7 @@ const AuthPage = () => {
     try {
       if (isLogin) {
         const result = await login(formData.correo, formData.contrasena);
-        
+
         if (result.success) {
           alert('¡Inicio de sesión exitoso!');
           navigate('/mi-perfil');
@@ -68,17 +68,33 @@ const AuthPage = () => {
           setError(result.error);
         }
       } else {
+
+        // Validar email y contraseña antes de enviar la solicitud
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.correo)) {
+          setError('Por favor, ingresa un correo electrónico válido.');
+          setLoading(false);
+          return;
+        }
+
+        if (formData.contrasena.length < 6) { // Ajusta la longitud mínima según tu requerimiento
+          setError('La contraseña debe tener al menos 6 caracteres.');
+          setLoading(false);
+          return;
+        }
+
+
         // Registro con foto
         const formDataToSend = new FormData();
         formDataToSend.append('nombre', formData.nombre);
         formDataToSend.append('nickname', formData.nickname);
         formDataToSend.append('correo', formData.correo);
         formDataToSend.append('contrasena', formData.contrasena);
-        
+
         if (formData.fotoPerfil) {
           formDataToSend.append('fotoPerfil', formData.fotoPerfil);
         }
-        
+
         const response = await axios.post(
           'http://localhost:3000/api/usuarios/registro-con-foto',
           formDataToSend,
@@ -86,9 +102,9 @@ const AuthPage = () => {
             headers: { 'Content-Type': 'multipart/form-data' }
           }
         );
-        
+
         alert('¡Registro exitoso! Por favor inicia sesión');
-        
+
         // Limpiar el formulario y cambiar a modo login
         setIsLogin(true);
         setFormData({
@@ -99,13 +115,29 @@ const AuthPage = () => {
           fotoPerfil: null
         });
         setPreview(null);
-        
+
         // Permanecer en la misma página (auth) pero en modo login
         // No necesitamos navegar porque ya estamos en /auth
       }
     } catch (error) {
       console.error('Error:', error);
-      setError(error.response?.data?.error || 'Error en la solicitud');
+      let errorMessage = 'Ingresa un correo electrónico válido';
+
+      // Verificar si el error es específico del backend
+      if (error.response?.data?.error) {
+        const backendError = error.response.data.error;
+
+        // Ejemplo de mensajes que podrías recibir del backend
+        if (backendError.includes('correo') || backendError.includes('email')) {
+          errorMessage = 'El correo electrónico ya está registrado o no es válido.';
+        } else if (backendError.includes('contrasena') || backendError.includes('password')) {
+          errorMessage = 'La contraseña no cumple con los requisitos mínimos.';
+        } else {
+          errorMessage = backendError;
+        }
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -119,7 +151,7 @@ const AuthPage = () => {
   return (
     <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
       <div className="bg-[#56ab91] rounded-[40px] p-8 w-full max-w-md shadow-2xl relative">
-        
+
         {/* Botón para volver al home */}
         <button
           onClick={goToHome}
@@ -158,7 +190,7 @@ const AuthPage = () => {
                   required={!isLogin}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-[#1e2a3a] mb-1 ml-1 font-medium">Nickname</label>
                 <input
@@ -173,7 +205,7 @@ const AuthPage = () => {
               </div>
             </>
           )}
-          
+
           <div>
             <label className="block text-[#1e2a3a] mb-1 ml-1 font-medium">Email</label>
             <input
@@ -216,15 +248,15 @@ const AuthPage = () => {
             <div>
               <label className="block text-[#1e2a3a] mb-1 ml-1 font-medium">Foto de Perfil</label>
               <div className="relative">
-                <input 
-                  type="file" 
-                  accept="image/*" 
+                <input
+                  type="file"
+                  accept="image/*"
                   onChange={handleFileChange}
-                  className="hidden" 
+                  className="hidden"
                   id="foto-upload"
                 />
-                <label 
-                  htmlFor="foto-upload" 
+                <label
+                  htmlFor="foto-upload"
                   className="w-full bg-[#4a917a] rounded-2xl p-3 flex items-center justify-center gap-3 cursor-pointer hover:bg-[#3d7a67] transition-all border-2 border-dashed border-white/30 hover:border-white/60"
                 >
                   {preview ? (
@@ -242,7 +274,7 @@ const AuthPage = () => {
           )}
 
           <div className="pt-4 flex justify-center">
-            <button 
+            <button
               type="submit"
               disabled={loading}
               className="bg-[#2d2a3e] text-white px-12 py-3 rounded-2xl font-bold text-lg hover:bg-[#3d3852] transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95"
@@ -260,8 +292,8 @@ const AuthPage = () => {
         </form>
 
         <p className="text-center mt-6 text-[#1e2a3a] font-medium">
-          {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'} 
-          <button 
+          {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+          <button
             onClick={() => {
               setIsLogin(!isLogin);
               setError('');
@@ -273,7 +305,7 @@ const AuthPage = () => {
                 fotoPerfil: null
               });
               setPreview(null);
-            }} 
+            }}
             className="ml-1 underline font-bold hover:text-white transition-colors"
           >
             {isLogin ? 'Regístrate' : 'Inicia sesión'}
