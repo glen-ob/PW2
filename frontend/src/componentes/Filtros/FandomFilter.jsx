@@ -1,19 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import '../../App.css'
 
 const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [fandoms, setFandoms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fandoms = [
-    { id: 'pokemon', label: 'Pokemon', color: 'from-yellow-400 to-red-400' },
-    { id: 'magic', label: 'Magic', color: 'from-blue-400 to-purple-400' },
-    { id: 'digimon', label: 'Digimon', color: 'from-orange-400 to-red-400' },
-    { id: 'dragonball', label: 'DragonBall', color: 'from-orange-500 to-red-500' }
-  ];
+  // Fetch fandoms from backend
+  useEffect(() => {
+    const fetchFandoms = async () => {
+      try {
+        setLoading(true);
+        
+        const response = await fetch('http://localhost:3000/api/franquicias');
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+       
+        if (data.success && data.franquicias) {
+          const formattedFandoms = data.franquicias.map(franquicia => ({
+            id: franquicia._id,
+            label: franquicia.nombre,
+            slug: franquicia.slug
+          }));
+          
+          setFandoms(formattedFandoms);
+        } else {
+          throw new Error('Formato de datos inválido');
+        }
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching fandoms:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  React.useEffect(() => {
+    fetchFandoms();
+  }, []);
+
+  useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -26,6 +59,46 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
       onFandomChange(fandoms.map(f => f.id));
     }
   };
+
+  // Mostrar loading state
+  if (loading) {
+    return (
+      <div className="w-full bg-slate-900/60 p-3 sm:p-4 rounded-2xl sm:rounded-3xl border-2 border-[#56ab91]/30 shadow-xl">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-semibold highlight text-sm sm:text-base flex items-center gap-2">
+            <Filter className="w-3 h-3 sm:w-4 sm:h-4 highlight" /> 
+            <span>Cargando franquicias...</span>
+          </h3>
+        </div>
+        <div className="animate-pulse space-y-2">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-8 bg-slate-800 rounded-xl"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar error state
+  if (error) {
+    return (
+      <div className="w-full bg-slate-900/60 p-3 sm:p-4 rounded-2xl sm:rounded-3xl border-2 border-red-500/30 shadow-xl">
+        <div className="text-red-400 text-sm text-center">
+          Error al cargar franquicias: {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (fandoms.length === 0) {
+    return (
+      <div className="w-full bg-slate-900/60 p-3 sm:p-4 rounded-2xl sm:rounded-3xl border-2 border-[#56ab91]/30 shadow-xl">
+        <div className="text-gray-400 text-sm text-center">
+          No hay franquicias disponibles
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-slate-900/60 p-3 sm:p-4 rounded-2xl sm:rounded-3xl border-2 border-[#56ab91]/30 shadow-xl">

@@ -437,8 +437,7 @@ export const obtenerColeccionPublica = async (req, res) => {
     try {
         const { usuarioId } = req.params;
         
-        // Aquí iría la lógica para obtener las cartas del usuario
-        // Por ahora devolvemos datos de ejemplo
+        
         const coleccionEjemplo = [
             { id: 1, nombre: "Pikachu", imagen: "https://i.pinimg.com/736x/e7/02/c6/e702c62be77870ff68d2decd19cbd137.jpg", rareza: "Común" },
             { id: 2, nombre: "Charizard", imagen: "https://i.pinimg.com/736x/46/7d/27/467d27d51e4a84775142a54a7534ac89.jpg", rareza: "Rara" },

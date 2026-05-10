@@ -1,69 +1,104 @@
+// Gallery.jsx - Version corregida sin emojis
 import React, { useState } from 'react';
 import '../../App.css';
 import '../../pantallas/index.css';
+import { useEffect } from 'react';
+import axios from 'axios';
 
-const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
-  const [selectedCartas, setSelectedCartas] = useState([]);
-  const [franquicia, setFranquicia] = useState('all');
+const Gallery = ({ isOpen, onClose, onSelectCartas, franquicia, setFranquicia, selectedCartas, setSelectedCartas }) => {
+  const [cartas, setCartas] = useState([]);
   const [busqueda, setBusqueda] = useState('');
+  const [franquicias, setFranquicias] = useState([]);
+  const [erroresImagen, setErroresImagen] = useState({});
 
-  const cartas = [
-    // POKEMON
-    { id: 1, nombre: 'Raichu', franquicia: 'pokemon', imagen: '/imagesPokemon/raichu.PNG' },
-    { id: 2, nombre: 'Pikachu ex', franquicia: 'pokemon', imagen: '/imagesPokemon/pikachu_ex.PNG' },
-    { id: 3, nombre: 'Jolteon', franquicia: 'pokemon', imagen: '/imagesPokemon/jolteon.PNG' },
-    { id: 4, nombre: 'Clefairy', franquicia: 'pokemon', imagen: '/imagesPokemon/clefairy.PNG' },
-    { id: 5, nombre: 'Minccino', franquicia: 'pokemon', imagen: '/imagesPokemon/minccino.PNG' },
-    { id: 6, nombre: 'Rapidash', franquicia: 'pokemon', imagen: '/imagesPokemon/rapidash.PNG' },
-    { id: 7, nombre: 'Lapras', franquicia: 'pokemon', imagen: '/imagesPokemon/lapras.PNG' },
-    { id: 8, nombre: 'Charizard ex', franquicia: 'pokemon', imagen: '/imagesPokemon/charizard_ex.PNG' },
-    // MAGIC
-    { id: 10, nombre: 'Caballero Templario', franquicia: 'magic', imagen: '/imagesMagic/caballero_templario.png' },
-    { id: 11, nombre: 'Albondiga Siempre Leal', franquicia: 'magic', imagen: '/imagesMagic/albondiga_siempre_leal.png' },
-    { id: 12, nombre: 'Herbivoro arboreo', franquicia: 'magic', imagen: '/imagesMagic/herbivoro_arboreo.png' },
-    { id: 13, nombre: 'Astillas Oseas', franquicia: 'magic', imagen: '/imagesMagic/astillas_oseas.jpg' },
-    { id: 14, nombre: 'Hurgar Cerebro', franquicia: 'magic', imagen: '/imagesMagic/hurgar_cerebro.png' },
-    { id: 15, nombre: 'Contendiente Aclamada', franquicia: 'magic', imagen: '/imagesMagic/contendiente_aclamda.png' },
-    { id: 16, nombre: 'Rastrero de la Cripta', franquicia: 'magic', imagen: '/imagesMagic/rastrero_de_la_cripta.jpg' },
-    { id: 17, nombre: 'Suenos Desenfrenados', franquicia: 'magic', imagen: '/imagesMagic/suenos_desenfrenados.png' },
-    // DRAGON BALL
-    { id: 20, nombre: 'Exploradores', franquicia: 'dragonball', imagen: '/imagesDB/exploradores.jpg' },
-    { id: 21, nombre: 'Sabemos quien ganara', franquicia: 'dragonball', imagen: '/imagesDB/sabemos_quien_ganara.jpg' },
-    { id: 22, nombre: 'Big bang kame hame ha', franquicia: 'dragonball', imagen: '/imagesDB/big_bang_kame_hame_ha.jpg' },
-    { id: 23, nombre: 'Detener Ataque', franquicia: 'dragonball', imagen: '/imagesDB/detener_ataque.jpg' },
-    { id: 24, nombre: 'Humillando', franquicia: 'dragonball', imagen: '/imagesDB/humillando.jpg' },
-    { id: 25, nombre: 'Big Bang', franquicia: 'dragonball', imagen: '/imagesDB/big_bang.jpg' },
-    { id: 26, nombre: 'Quita aire', franquicia: 'dragonball', imagen: '/imagesDB/quita_aire.jpg' },
-    { id: 27, nombre: 'Super Saiyan 2', franquicia: 'dragonball', imagen: '/imagesDB/super_saiyan2.png' },
-    // YU-GI-OH
-    { id: 28, nombre: 'Chica Maga Oscura', franquicia: 'yugioh', imagen: '/imagesYugioh/chica_maga_oscura.jpg' },
-    { id: 29, nombre: 'D Contragolpe', franquicia: 'yugioh', imagen: '/imagesYugioh/d-contragolpe.jpg' },
-    { id: 30, nombre: 'Ciber Dragon', franquicia: 'yugioh', imagen: '/imagesYugioh/ciber_dragon.jpg' },
-    { id: 31, nombre: 'Coraza del Caos', franquicia: 'yugioh', imagen: '/imagesYugioh/coraza_del_caos.jpg' },
-    { id: 32, nombre: 'Dragon Blanco de ojos Azules', franquicia: 'yugioh', imagen: '/imagesYugioh/dragon_blanco_de_ojos_azules.jpg' },
-    { id: 33, nombre: 'El Dragon alado de Ra', franquicia: 'yugioh', imagen: '/imagesYugioh/el_dragon_alado_de_ra.jpg' },
-    { id: 34, nombre: 'Gil Garth', franquicia: 'yugioh', imagen: '/imagesYugioh/gil_garth.png' },
-    { id: 35, nombre: 'Buey de Batalla', franquicia: 'yugioh', imagen: '/imagesYugioh/buey_de_batalla.jpg' },
-    // DIGIMON
-    { id: 36, nombre: 'Patamon', franquicia: 'digimon', imagen: '/imagesDigimon/patamon.jpg' },
-    { id: 37, nombre: 'AncientKazemon', franquicia: 'digimon', imagen: '/imagesDigimon/ancient_kazemon.jpg' },
-    { id: 38, nombre: 'Yellow Scramble', franquicia: 'digimon', imagen: '/imagesDigimon/yellow_scramble.jpg' },
-    { id: 39, nombre: 'BurningGreymon', franquicia: 'digimon', imagen: '/imagesDigimon/burningGreymon.png' },
-    { id: 40, nombre: 'Pulsemon', franquicia: 'digimon', imagen: '/imagesDigimon/pulsemon.jpg' },
-    { id: 41, nombre: 'Jijimon', franquicia: 'digimon', imagen: '/imagesDigimon/jijimon.png' },
-    { id: 42, nombre: 'GoldVeedramon', franquicia: 'digimon', imagen: '/imagesDigimon/goldveedramon.jpg' },
-    { id: 43, nombre: 'Elecmon', franquicia: 'digimon', imagen: '/imagesDigimon/elecmon.jpg' },
-  ];
+  console.log('Gallery render - isOpen:', isOpen, 'franquicia:', franquicia);
+
+  useEffect(() => {
+    const fetchFranquicias = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/api/franquicias');
+        setFranquicias(res.data.franquicias);
+        console.log('Franquicias cargadas:', res.data.franquicias.length);
+      } catch (error) {
+        console.error('Error cargando franquicias:', error);
+      }
+    };
+    fetchFranquicias();
+  }, []);
+
+  useEffect(() => {
+    const fetchCartas = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/api/cartas');
+        console.log('Cartas recibidas:', res.data.cartas.length);
+
+        const cartasMapeadas = res.data.cartas.map(carta => {
+          let imagenUrl = carta.imagenUrl || carta.imagen;
+          
+          console.log('Procesando carta:', carta.nombre);
+          console.log('  URL original:', imagenUrl);
+          
+          if (!imagenUrl) {
+            imagenUrl = 'https://via.placeholder.com/300x450/1e293b/56ab91?text=Sin+Imagen';
+            console.log('  Usando placeholder por falta de imagen');
+          } 
+          else if (!imagenUrl.startsWith('http')) {
+            let cleanUrl = imagenUrl;
+            
+            // Limpiar la URL si tiene rutas previas
+            if (cleanUrl.includes('uploads/cartas/')) {
+              cleanUrl = cleanUrl.replace('uploads/cartas/', '');
+            }
+            
+            // Construir URL completa para el backend
+            imagenUrl = `http://localhost:3000/uploads/cartas/${cleanUrl}`;
+            console.log('  URL transformada:', imagenUrl);
+          }
+          
+          return {
+            id: carta._id,
+            nombre: carta.nombre,
+            franquiciaId: carta.idFranquicia?._id,
+            franquicia: carta.idFranquicia?.nombre?.toLowerCase() || 'desconocido',
+            franquiciaNombre: carta.idFranquicia?.nombre || 'Desconocido',
+            imagen: imagenUrl
+          };
+        });
+
+        setCartas(cartasMapeadas);
+        console.log('Cartas mapeadas:', cartasMapeadas.length);
+        if (cartasMapeadas.length > 0) {
+          console.log('Primera carta ejemplo:', cartasMapeadas[0]);
+        }
+      } catch (error) {
+        console.error('Error cargando cartas:', error);
+      }
+    };
+
+    fetchCartas();
+  }, []);
 
   if (!isOpen) return null;
 
-  const cartasFiltradas = cartas.filter(c => {
-    const matchFranquicia = franquicia === 'all' || c.franquicia === franquicia;
-    const matchBusqueda = c.nombre.toLowerCase().includes(busqueda.toLowerCase());
+  const cartasFiltradas = cartas.filter(carta => {
+    const matchFranquicia = !franquicia || franquicia === 'all' || carta.franquiciaId === franquicia;
+    const matchBusqueda = carta.nombre.toLowerCase().includes(busqueda.toLowerCase());
     return matchFranquicia && matchBusqueda;
   });
 
+  console.log('Cartas filtradas:', cartasFiltradas.length);
+
   const handleToggleCarta = (carta) => {
+    if (!franquicia) {
+      alert('Selecciona una franquicia primero');
+      return;
+    }
+
+    if (carta.franquiciaId !== franquicia) {
+      alert('Solo puedes seleccionar cartas de la franquicia elegida');
+      return;
+    }
+    
     setSelectedCartas(prev => {
       const existe = prev.find(c => c.id === carta.id);
       if (existe) {
@@ -97,20 +132,26 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
     onClose();
   };
 
+  const handleImageError = (cartaId, imagenUrl) => {
+    console.error('Error cargando imagen para carta:', cartaId, imagenUrl);
+    setErroresImagen(prev => ({
+      ...prev,
+      [cartaId]: true
+    }));
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3 md:p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       
-      {/* modal principal */}
       <div className="relative w-full max-w-6xl h-[92vh] sm:h-[94vh] md:h-[95vh] flex flex-col rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl animate-fadeIn" style={{ 
         backgroundColor: 'var(--background-slate)',
-        border: `2px solid var(--border-color)`,
+        border: '2px solid var(--border-color)',
         backdropFilter: 'blur(8px)'
       }}>
         
-        {/* HEADER FIJO */}
+        {/* Header Fijo */}
         <div className="flex-shrink-0 sticky top-0 z-20" style={{ backgroundColor: 'var(--background-slate)' }}>
-          {/* Boton de cerrar */}
           <div className="flex justify-end p-2 sm:p-3 md:p-4">
             <button
               onClick={onClose}
@@ -119,7 +160,7 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
                 width: '36px',
                 height: '36px',
                 backgroundColor: 'var(--button-color)',
-                border: `2px solid var(--border-color)`,
+                border: '2px solid var(--border-color)',
                 color: 'var(--primary-text-color)'
               }}
             >
@@ -127,32 +168,32 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
             </button>
           </div>
 
-          {/* filtros y controles */}
           <div className="px-3 sm:px-4 md:px-6 pb-2 sm:pb-3">
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
-              {/* select de franquicia */}
               <div className="relative w-full sm:w-48 md:w-56">
                 <select
                   value={franquicia}
-                  onChange={(e) => setFranquicia(e.target.value)}
+                  onChange={(e) => {
+                    setFranquicia(e.target.value);
+                    setSelectedCartas([]);
+                  }}
                   className="w-full rounded-full py-1.5 sm:py-2 px-3 sm:px-4 pr-7 sm:pr-8 outline-none appearance-none cursor-pointer text-xs sm:text-sm font-medium transition-all"
                   style={{ 
                     backgroundColor: 'var(--search-bar)',
                     color: 'white',
-                    border: `1px solid var(--border-color)`
+                    border: '1px solid var(--border-color)'
                   }}
                 >
-                  <option value="all">Todas las franquicias</option>
-                  <option value="pokemon">Pokemon</option>
-                  <option value="magic">Magic</option>
-                  <option value="dragonball">Dragon Ball</option>
-                  <option value="yugioh">Yu-Gi-Oh</option>
-                  <option value="digimon">Digimon</option>
+                  <option value="">Todas las franquicias</option>
+                  {franquicias.map((f) => (
+                    <option key={f._id} value={f._id}>
+                      {f.nombre}
+                    </option>
+                  ))}
                 </select>
                 <span className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[8px] sm:text-[10px] text-white">▼</span>
               </div>
               
-              {/* buscador */}
               <div className="flex-1 w-full">
                 <input
                   type="text"
@@ -162,12 +203,11 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
                   style={{ 
                     backgroundColor: 'var(--search-bar)',
                     color: 'white',
-                    border: `1px solid var(--border-color)`
+                    border: '1px solid var(--border-color)'
                   }}
                   placeholder="Buscar cartas por nombre..."
                 />
               </div>
-              
 
               <div className="flex gap-2 justify-end">
                 <button
@@ -176,7 +216,7 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
                   style={{ 
                     backgroundColor: 'var(--button-color)',
                     color: 'var(--primary-text-color)',
-                    border: `1px solid var(--border-color)`
+                    border: '1px solid var(--border-color)'
                   }}
                 >
                   {cartasFiltradas.length > 0 && cartasFiltradas.every(c => selectedCartas.some(sc => sc.id === c.id))
@@ -200,7 +240,6 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
             </div>
           </div>
 
-          {/* contador de seleccion */}
           <div className="flex justify-between items-center px-3 sm:px-4 md:px-6 py-1 sm:py-2 pb-2 sm:pb-3">
             <div className="text-[10px] sm:text-xs md:text-sm">
               {selectedCartas.length > 0 ? (
@@ -217,11 +256,13 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
           </div>
         </div>
 
-        {/* AREA DE SCROLL */}
+        {/* Area de Scroll */}
         <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 custom-scrollbar">
           <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
             {cartasFiltradas.map((carta) => {
               const isSelected = selectedCartas.some(c => c.id === carta.id);
+              const tieneError = erroresImagen[carta.id];
+              
               return (
                 <div
                   key={carta.id}
@@ -230,17 +271,16 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
                   style={{ 
                     borderColor: isSelected ? 'var(--border-color)' : 'rgba(86, 171, 145, 0.2)',
                     backgroundColor: isSelected ? 'var(--background-slate)' : 'rgba(51, 65, 85, 0.4)',
-                    boxShadow: isSelected ? `0 0 15px var(--border-color)` : 'none'
+                    boxShadow: isSelected ? '0 0 15px var(--border-color)' : 'none'
                   }}
                 >
-                  <div className="aspect-[2/3] w-full overflow-hidden relative">
+                  <div className="aspect-[2/3] w-full overflow-hidden relative bg-gray-800">
                     <img
-                      src={carta.imagen}
+                      src={tieneError ? `https://via.placeholder.com/300x450/1e293b/56ab91?text=${encodeURIComponent(carta.nombre)}` : carta.imagen}
                       alt={carta.nombre}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/300x450/1e293b/56ab91?text=Imagen+No+Encontrada';
-                      }}
+                      loading="lazy"
+                      onError={() => handleImageError(carta.id, carta.imagen)}
                     />
                     
                     <div className={`absolute top-1 right-1 sm:top-2 sm:right-2 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full bg-black/70 flex items-center justify-center transition-all
@@ -260,8 +300,9 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
                     <h3 className="font-bold text-[10px] sm:text-xs md:text-sm truncate uppercase" style={{ color: 'var(--primary-text-color)' }}>
                       {carta.nombre}
                     </h3>
-                    <p className="text-[8px] sm:text-[10px] md:text-xs font-bold highlight capitalize mt-0.5 sm:mt-1">{carta.franquicia}</p>
-                    
+                    <p className="text-[8px] sm:text-[10px] md:text-xs font-bold highlight capitalize mt-0.5 sm:mt-1">
+                      {carta.franquiciaNombre || carta.franquicia}
+                    </p>
                     {isSelected && (
                       <div className="text-[6px] sm:text-[8px] md:text-[10px] font-black mt-0.5 sm:mt-1 animate-pulse highlight">
                         SELECCIONADA
@@ -276,12 +317,14 @@ const Gallery = ({ isOpen, onClose, onSelectCartas }) => {
           {cartasFiltradas.length === 0 && (
             <div className="text-center py-12">
               <p style={{ color: 'var(--secondary-text-color)' }}>No se encontraron cartas</p>
-              <p className="text-[10px] sm:text-xs mt-2" style={{ color: 'var(--secondary-text-color)' }}>Intenta con otra busqueda o franquicia</p>
+              <p className="text-[10px] sm:text-xs mt-2" style={{ color: 'var(--secondary-text-color)' }}>
+                {franquicia ? 'No hay cartas para esta franquicia' : 'Selecciona una franquicia para ver sus cartas'}
+              </p>
             </div>
           )}
         </div>
 
-        {/* FOOTER FIJO */}
+        {/* Footer Fijo */}
         <div className="flex-shrink-0 flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-3 p-3 sm:p-4 border-t" style={{ 
           backgroundColor: 'var(--background-slate)',
           borderColor: 'var(--border-color)'
