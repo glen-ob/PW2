@@ -74,7 +74,18 @@ export const crearUsuario = async (req, res) => {
 
     } catch (error) {
         console.error('Error detallado en registro:', error);
-        res.status(500).json({ error: 'Error al crear el usuario: ' + error.message });
+
+        if (error.name === 'ValidationError') {
+            const mensajes = Object.values(error.errors).map(err => err.message);
+
+            return res.status(400).json({
+                error: mensajes.join(', ')
+            });
+        }
+
+        res.status(500).json({
+            error: 'Error al crear el usuario'
+        });
     }
 };
 export const crearUsuarioConFoto = async (req, res) => {
@@ -158,7 +169,18 @@ export const crearUsuarioConFoto = async (req, res) => {
 
     } catch (error) {
         console.error('Error detallado en registro:', error);
-        res.status(500).json({ error: 'Error al crear el usuario: ' + error.message });
+
+        if (error.name === 'ValidationError') {
+            const mensajes = Object.values(error.errors).map(err => err.message);
+
+            return res.status(400).json({
+                error: mensajes.join(', ')
+            });
+        }
+
+        res.status(500).json({
+            error: 'Error al crear el usuario'
+        });
     }
 };
 
