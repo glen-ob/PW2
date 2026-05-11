@@ -192,3 +192,6 @@ app.listen(PORT, () => {
     console.log(` Serviendo archivos estáticos desde: ${uploadsPath}`);
 });
 
+
+console.log('API_URL:', import.meta.env.VITE_API_URL);
+console.log('Todas las variables VITE:', import.meta.env);
