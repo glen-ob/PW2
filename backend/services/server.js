@@ -205,7 +205,7 @@ app.use(cors());
 //     allowedHeaders: ['Content-Type', 'Authorization']
 // };
 // app.use(cors(corsOptions));
-
+require('dotenv').config();
 app.options('/(.*)/', cors());  // responder a preflight requests
 const mongoURI=process.env.MONGODB_URI;
 // railway inyecta aqui
