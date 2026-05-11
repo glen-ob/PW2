@@ -194,7 +194,7 @@ app.listen(PORT, () => {
 });
 
 // const express = require('express');
-const cors = require('cors');
+//const cors = require('cors');
 const app = express();
 
 // Configuración de CORS - permite todas las peticiones (para desarrollo)
