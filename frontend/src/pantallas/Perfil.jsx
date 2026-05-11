@@ -50,7 +50,7 @@ const Perfil = () => {
   useEffect(() => {
     const fetchColecciones = async () => {
       try {
-        const res = await axios.get('${API_URL}/api/colecciones/usuario', {
+        const res = await axios.get(`${API_URL}/api/colecciones/usuario`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }

@@ -15,7 +15,7 @@ const UsuariosTopReport = ({ onClose }) => {
         const token = localStorage.getItem('token');
         console.log('Token:', token ? 'Existe' : 'No existe');
         
-        const response = await axios.get('${API_URL}/api/reportes/top-usuarios', {
+        const response = await axios.get(`${API_URL}/api/reportes/top-usuarios`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         

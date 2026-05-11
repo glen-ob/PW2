@@ -76,7 +76,7 @@ const Coleccion = () => {
 
   const fetchPublicaciones = async () => {
     try {
-      const res = await axios.get('${API_URL}/api/publicaciones?tipo=coleccion');
+      const res = await axios.get(`${API_URL}/api/publicaciones?tipo=coleccion`);
       console.log('Publicaciones recibidas:', res.data.publicaciones);
 
       const pubs = res.data.publicaciones.map(p => {

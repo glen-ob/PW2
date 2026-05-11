@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     // Login
     const login = async (correo, contrasena) => {
         try {
-            const response = await axios.post('${API_URL}/api/usuarios/login', {
+            const response = await axios.post(`${API_URL}/api/usuarios/login`, {
                 correo,
                 contrasena
             });
@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     // Registro
     const registro = async (userData) => {
         try {
-            const response = await axios.post('${API_URL}/api/usuarios/registro', userData);
+            const response = await axios.post(`${API_URL}/api/usuarios/registro`, userData);
 
             const { token: nuevoToken, usuario: usuarioData } = response.data;
 
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }) => {
     const actualizarPerfil = async (datos) => {
         try {
             const response = await axios.put(
-                '${API_URL}/api/usuarios/perfil',
+                `${API_URL}/api/usuarios/perfil`,
                 datos,
                 {
                     headers: {
@@ -129,7 +129,7 @@ export const AuthProvider = ({ children }) => {
     const actualizarFotoPerfil = async (formData) => {
         try {
             const response = await axios.put(
-                '${API_URL}/api/usuarios/perfil/foto',
+                `${API_URL}/api/usuarios/perfil/foto`,
                 formData,
                 {
                     headers: {

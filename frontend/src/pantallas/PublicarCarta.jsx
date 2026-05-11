@@ -31,7 +31,7 @@ const PublicarCarta = () => {
   useEffect(() => {
     const fetchFranquicias = async () => {
       try {
-        const res = await axios.get('${API_URL}/api/franquicias');
+        const res = await axios.get(`${API_URL}/api/franquicias`);
         setFranquicias(res.data.franquicias);
       } catch (error) {
         console.error('Error cargando franquicias:', error);
