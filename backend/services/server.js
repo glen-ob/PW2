@@ -193,20 +193,21 @@ app.listen(PORT, () => {
 
 });
 
-// const express = require('express');
-// const cors = require('cors');
-// const app = express();
+const express = require('express');
+const cors = require('cors');
+const app = express();
 
-// // Configuración de CORS - permite todas las peticiones (para desarrollo)
-// app.use(cors());
+// Configuración de CORS - permite todas las peticiones (para desarrollo)
+app.use(cors());
 
-const corsOptions = {
-    origin: 'https://pw-2-72rx.vercel.app', 
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-};
-app.use(cors(corsOptions));
+// const corsOptions = {
+//     origin: 'https://pw-2-72rx.vercel.app', 
+//     credentials: true,
+//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     allowedHeaders: ['Content-Type', 'Authorization']
+// };
+// app.use(cors(corsOptions));
+
 app.options('*', cors());  // responder a preflight requests
 const mongoose = require('mongoose');
 const mongoURI = process.env.MONGODB_URI; // railway inyecta aqui
