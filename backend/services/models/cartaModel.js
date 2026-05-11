@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import API_URL from "../../../frontend/src/config";
 
 const cartaSchema = new mongoose.Schema({
     nombre: {

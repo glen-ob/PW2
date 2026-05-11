@@ -5,7 +5,6 @@ import { validationResult } from 'express-validator';
 import path from 'path'; // estas rutas son para las imágenes
 import { fileURLToPath } from 'url';
 import { optimizarImagen, eliminarImagen } from '../utils/imageUtils.js';
-import API_URL from "../../../frontend/src/config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
