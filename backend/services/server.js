@@ -15,6 +15,8 @@ import coleccionRoutes from "./routes/coleccionRoutes.js";
 import reporteRoutes from './routes/reporteRoutes.js';
 import estadisticaRoutes from './routes/estadisticaRoutes.js';
 
+import mongoose from "mongoose";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -205,6 +207,5 @@ app.use(cors());
 // app.use(cors(corsOptions));
 
 app.options('/(.*)/', cors());  // responder a preflight requests
-const mongoose = import('mongoose');
 const mongoURI = process.env.MONGODB_URI; // railway inyecta aqui
 mongoose.connect(mongoURI);
