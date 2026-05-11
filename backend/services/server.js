@@ -19,10 +19,6 @@ import estadisticaRoutes from './routes/estadisticaRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Configuración de API
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-export default API_URL;
 
 // Cargar variables de entorno
 dotenv.config();
