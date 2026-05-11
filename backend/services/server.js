@@ -205,6 +205,6 @@ app.use(cors());
 // app.use(cors(corsOptions));
 
 app.options('/(.*)/', cors());  // responder a preflight requests
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 const mongoURI = process.env.MONGODB_URI; // railway inyecta aqui
 mongoose.connect(mongoURI);
