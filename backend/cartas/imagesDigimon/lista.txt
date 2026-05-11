@@ -1,0 +1,11 @@
+ancient_kazemon.png
+burningGreymon.png
+elecmon.png
+goldveedramon.png
+greymon.png
+jijimon.png
+lista.txt
+patamon.png
+pulsemon.png
+skullgreymon.png
+yellow_scramble.png
