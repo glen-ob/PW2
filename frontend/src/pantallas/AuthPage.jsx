@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Camera, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import axios from 'axios';
-
+import API_URL from '../config';
 const AuthPage = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);

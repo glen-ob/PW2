@@ -3,6 +3,7 @@ import { X, Calendar, TrendingUp, ChevronLeft, ChevronRight, Activity } from 'lu
 import axios from 'axios';
 import '../../App.css';
 import '../../pantallas/index.css';
+import API_URL from '../../config';
 
 const ActividadSemanalReport = ({ onClose }) => {
   const [actividad, setActividad] = useState([]);

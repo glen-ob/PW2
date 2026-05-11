@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { useReaccion } from '../../hooks/useReaccion';
 import { useAuth } from '../../../context/AuthContext';
+import API_URL from '../../config';
 
 const PubliCard = ({ 
   publicacion,

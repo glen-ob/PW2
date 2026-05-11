@@ -3,6 +3,7 @@ import { X, TrendingUp } from 'lucide-react';
 import axios from 'axios';
 import '../../App.css';
 import '../../pantallas/index.css';
+import API_URL from '../../config';
 
 const FandomsTopReport = ({ onClose }) => {
   const [fandoms, setFandoms] = useState([]);

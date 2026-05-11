@@ -12,7 +12,7 @@ import {
 import axios from 'axios';
 import '../App.css'
 import '../pantallas/index.css'
-
+import API_URL from '../config';
 const Estadistica = () => {
   const navigate = useNavigate();
   const [periodo, setPeriodo] = useState('semana');

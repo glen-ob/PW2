@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import API_URL from '../config';
 
-const Avatar = ({ 
-  fotoPerfil, 
-  nombre, 
-  size = "w-40 h-40", 
+const Avatar = ({
+  fotoPerfil,
+  nombre,
+  size = "w-40 h-40",
   textSize = "text-6xl",
   borderColor = "border-[#2d2a3e]"
 }) => {
@@ -17,21 +18,21 @@ const Avatar = ({
       return;
     }
 
-    
+
     if (fotoPerfil.startsWith('blob:')) {
       setFotoUrl(fotoPerfil);
       setFotoError(false);
       return;
     }
 
-   
+
     if (fotoPerfil.startsWith('http://') || fotoPerfil.startsWith('https://')) {
       setFotoUrl(fotoPerfil);
       setFotoError(false);
       return;
     }
-    
-   
+
+
     let url = null;
     if (fotoPerfil.startsWith('/uploads')) {
       url = `${API_URL}${fotoPerfil}`;
@@ -40,7 +41,7 @@ const Avatar = ({
     } else {
       url = `${API_URL}/uploads/perfiles/${fotoPerfil}`;
     }
-    
+
     setFotoUrl(url);
     setFotoError(false);
   }, [fotoPerfil, forceFallback]);

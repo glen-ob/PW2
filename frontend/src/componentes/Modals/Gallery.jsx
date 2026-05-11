@@ -4,6 +4,7 @@ import '../../App.css';
 import '../../pantallas/index.css';
 import { useEffect } from 'react';
 import axios from 'axios';
+import API_URL from '../../config';
 
 const Gallery = ({ isOpen, onClose, onSelectCartas, franquicia, setFranquicia, selectedCartas, setSelectedCartas }) => {
   const [cartas, setCartas] = useState([]);

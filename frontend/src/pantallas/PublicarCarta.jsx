@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Gallery from '../componentes/Modals/Gallery';
 import { useEffect } from 'react';
 import axios from 'axios';
-
+import API_URL from '../config';
 const PublicarCarta = () => {
   const navigate = useNavigate();
   const [showGalleryModal, setShowGalleryModal] = useState(false);

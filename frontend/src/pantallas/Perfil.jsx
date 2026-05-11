@@ -9,7 +9,7 @@ import '../pantallas/index.css';
 import '../componentes/Cards/cartas_efecto.css';
 
 import axios from 'axios';
-
+import API_URL from '../config';
 
 const Perfil = () => {
   const navigate = useNavigate();

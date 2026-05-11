@@ -16,6 +16,7 @@ import cartaRoutes from "./routes/cartaRoutes.js";
 import coleccionRoutes from "./routes/coleccionRoutes.js";
 import reporteRoutes from './routes/reporteRoutes.js';
 import estadisticaRoutes from './routes/estadisticaRoutes.js';
+import API_URL from "../../frontend/src/config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,24 +27,23 @@ dotenv.config();
 const app = express();
 
 // ============ CONFIGURACIÓN DE CORS (ANTES DE LAS RUTAS) ============
-// Opción 1: Permitir todos los orígenes (para desarrollo/pruebas)
-app.use(cors());
+// Permitir todos los orígenes (para desarrollo/pruebas)
+// app.use(cors());
 
-// Opción 2: Configurar específicamente para Vercel (recomendado para producción)
-// const corsOptions = {
-//     origin: ['https://pw-2-72rx.vercel.app', 'http://localhost:5173'],
-//     credentials: true,
-//     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//     allowedHeaders: ['Content-Type', 'Authorization']
-// };
-// app.use(cors(corsOptions));
+// Configurar específicamente para Vercel
+const corsOptions = {
+    origin: ['https://pw-2-72rx.vercel.app', 'http://localhost:5173'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 
 // Middlewares básicos
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ============ CONEXIÓN A MONGODB ============
-// Usa MONGO_URL (Railway) o MONGODB_URI (Atlas)
 const mongoURI = process.env.MONGO_URL || process.env.MONGODB_URI;
 
 if (!mongoURI) {

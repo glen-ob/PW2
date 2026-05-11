@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import API_URL from "../../../frontend/src/config";
 
 const publicacionesSchema = new mongoose.Schema({
     Idusuario: {

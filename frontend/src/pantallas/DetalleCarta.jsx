@@ -7,7 +7,7 @@ import { useReaccion } from '../hooks/useReaccion';
 import '../App.css'
 import '../pantallas/index.css'
 import axios from 'axios';
-
+import API_URL from '../config';
 const DetalleCarta = () => {
   const navigate = useNavigate();
   const { usuario, isAuthenticated, token } = useAuth(); 

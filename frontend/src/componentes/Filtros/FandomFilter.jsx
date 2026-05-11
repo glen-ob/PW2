@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import '../../App.css'
+import API_URL from '../../config';
 
 const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -14,23 +15,23 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
     const fetchFandoms = async () => {
       try {
         setLoading(true);
-        
+
         const response = await fetch('${API_URL}/api/franquicias');
-        
+
         if (!response.ok) {
           throw new Error(`Error HTTP: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
-       
+
+
         if (data.success && data.franquicias) {
           const formattedFandoms = data.franquicias.map(franquicia => ({
             id: franquicia._id,
             label: franquicia.nombre,
             slug: franquicia.slug
           }));
-          
+
           setFandoms(formattedFandoms);
         } else {
           throw new Error('Formato de datos inválido');
@@ -66,7 +67,7 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
       <div className="w-full bg-slate-900/60 p-3 sm:p-4 rounded-2xl sm:rounded-3xl border-2 border-[#56ab91]/30 shadow-xl">
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-semibold highlight text-sm sm:text-base flex items-center gap-2">
-            <Filter className="w-3 h-3 sm:w-4 sm:h-4 highlight" /> 
+            <Filter className="w-3 h-3 sm:w-4 sm:h-4 highlight" />
             <span>Cargando franquicias...</span>
           </h3>
         </div>
@@ -104,7 +105,7 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
     <div className="w-full bg-slate-900/60 p-3 sm:p-4 rounded-2xl sm:rounded-3xl border-2 border-[#56ab91]/30 shadow-xl">
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-semibold highlight text-sm sm:text-base flex items-center gap-2">
-          <Filter className="w-3 h-3 sm:w-4 sm:h-4 highlight" /> 
+          <Filter className="w-3 h-3 sm:w-4 sm:h-4 highlight" />
           <span>Filtrar por franquicia</span>
           {selectedFandoms.length > 0 && (
             <span className="text-[10px] sm:text-xs bg-[#56ab91]/30 px-1.5 sm:px-2 py-0.5 rounded-full">
@@ -112,7 +113,7 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
             </span>
           )}
         </h3>
-        
+
         {/* botones de accion */}
         <div className="flex gap-2">
           {fandoms.length > 1 && !isMobile && (
@@ -133,14 +134,14 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
           )}
         </div>
       </div>
-      
+
       <div className={`space-y-2 sm:space-y-3 ${isMobile && !isExpanded ? 'hidden' : ''}`}>
         {fandoms.map(fandom => (
-          <label 
-            key={fandom.id} 
+          <label
+            key={fandom.id}
             className={`flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-xl transition-all cursor-pointer border border-transparent w-full
-              ${selectedFandoms.includes(fandom.id) 
-                ? `bg-[#56ab91]/20 border-[#56ab91]/50 shadow-[0_0_10px_rgba(86,171,145,0.2)]` 
+              ${selectedFandoms.includes(fandom.id)
+                ? `bg-[#56ab91]/20 border-[#56ab91]/50 shadow-[0_0_10px_rgba(86,171,145,0.2)]`
                 : 'hover:bg-white/5'}`}
           >
             <input
@@ -155,9 +156,8 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
               }}
               className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded border bg-transparent highlight focus:ring-[#56ab91] cursor-pointer"
             />
-            <span className={`text-xs sm:text-sm font-medium ${
-              selectedFandoms.includes(fandom.id) ? 'text-white' : 'text-gray-400'
-            }`}>
+            <span className={`text-xs sm:text-sm font-medium ${selectedFandoms.includes(fandom.id) ? 'text-white' : 'text-gray-400'
+              }`}>
               {fandom.label}
             </span>
           </label>

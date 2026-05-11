@@ -6,6 +6,7 @@ import ThemeOption from '../Toggle/ThemeOptions';
 import Avatar from '../Avatar';
 import '../../App.css'
 import '../../pantallas/index.css';
+import API_URL from '../../config';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -173,7 +174,7 @@ const Navbar = () => {
               )}
             </div>
 
-        
+
             {showResults && searchResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 search-result rounded-2xl shadow-xl z-50 max-h-96 overflow-y-auto border">
                 {searchResults.map((user) => (
@@ -203,7 +204,7 @@ const Navbar = () => {
             )}
 
           </div>
-          
+
           {/* Sección derecha: Temas + Usuario Desktop */}
           <div className="flex items-center gap-3 mr-4">
             <div className="theme-options flex gap-1">
@@ -213,13 +214,13 @@ const Navbar = () => {
               <ThemeOption bg="#46ca51" theme="digimon" />
               <ThemeOption bg="#c8ca46" theme="dragonball" />
             </div>
-            
+
             {usuario && (
               <span className="primary-text font-bold hidden sm:block">
                 {usuario?.nickname || usuario?.nombre || 'Usuario'}
               </span>
             )}
-            
+
             <button
               onClick={() => usuario ? navigate('/mi-perfil') : navigate('/auth')}
               className="w-10 h-10 rounded-full overflow-hidden border-2 border-pink-500 hover:ring-2 hover:ring-pink-300 transition-all"
@@ -321,7 +322,7 @@ const Navbar = () => {
               )}
             </div>
 
-            
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="mobile-menu-button w-8 h-8 flex flex-col items-center justify-center gap-1.5 flex-shrink-0"
@@ -332,15 +333,15 @@ const Navbar = () => {
             </button>
           </div>
 
-       
+
           {mobileMenuOpen && (
-            <div 
+            <div
               ref={mobileMenuRef}
               className="absolute left-0 right-0 top-full mt-2 bg-black/80 backdrop-blur-md rounded-2xl shadow-xl z-40 overflow-hidden border border-white/10"
               style={{ maxWidth: 'calc(100% - 1rem)', margin: '0.5rem auto', left: '0.5rem', right: '0.5rem' }}
             >
               <div className="flex flex-col">
-             
+
                 <div className="flex justify-center gap-2 py-3 px-4 border-b border-white/10">
                   <ThemeOption bg="#000000" theme="dark" />
                   <ThemeOption bg="#ffffff" theme="light" />

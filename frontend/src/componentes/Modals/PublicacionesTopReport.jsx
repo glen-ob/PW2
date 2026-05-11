@@ -3,6 +3,7 @@ import { X, Heart, MessageCircle, TrendingUp, Calendar, User } from 'lucide-reac
 import axios from 'axios';
 import '../../App.css';
 import '../../pantallas/index.css';
+import API_URL from '../../config';
 
 const PublicacionesTopReport = ({ onClose }) => {
   const [publicaciones, setPublicaciones] = useState([]);
@@ -36,8 +37,8 @@ const PublicacionesTopReport = ({ onClose }) => {
 
   return (
     <div className="w-full">
-      <div className="rounded-2xl sm:rounded-3xl overflow-hidden" style={{ 
-        backgroundColor: 'var(--background-slate)', 
+      <div className="rounded-2xl sm:rounded-3xl overflow-hidden" style={{
+        backgroundColor: 'var(--background-slate)',
         border: `2px solid var(--border-color)`,
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
       }}>
@@ -48,8 +49,8 @@ const PublicacionesTopReport = ({ onClose }) => {
               Publicaciones con más reacciones
             </h2>
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="p-1.5 sm:p-2 rounded-full transition-all hover:scale-110 active:scale-95"
             style={{ backgroundColor: 'var(--button-color)' }}
           >
@@ -69,7 +70,7 @@ const PublicacionesTopReport = ({ onClose }) => {
             <div className="text-center py-12">
               <div className="text-red-400 mb-2">⚠️</div>
               <p className="text-red-400">{error}</p>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="mt-4 px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
               >
@@ -87,8 +88,8 @@ const PublicacionesTopReport = ({ onClose }) => {
           {!cargando && !error && publicaciones.length > 0 && (
             <div className="space-y-4">
               {publicaciones.map((pub, index) => (
-                <div 
-                  key={pub._id} 
+                <div
+                  key={pub._id}
                   className="bg-slate-800/30 rounded-xl p-4 hover:bg-slate-800/50 transition-all duration-300 cursor-pointer"
                   onClick={() => setExpandedId(expandedId === pub._id ? null : pub._id)}
                 >
@@ -101,8 +102,8 @@ const PublicacionesTopReport = ({ onClose }) => {
 
                     {pub.imagen && (
                       <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-slate-700">
-                        <img 
-                          src={pub.imagen} 
+                        <img
+                          src={pub.imagen}
                           alt={pub.titulo}
                           className="w-full h-full object-cover"
                         />
@@ -111,7 +112,7 @@ const PublicacionesTopReport = ({ onClose }) => {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="text-xs px-2 py-1 rounded-full" style={{ 
+                        <span className="text-xs px-2 py-1 rounded-full" style={{
                           backgroundColor: 'rgba(86, 171, 145, 0.2)',
                           color: '#56ab91'
                         }}>

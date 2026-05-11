@@ -11,7 +11,7 @@ import '../pantallas/index.css';
 
 import { useEffect } from 'react';
 import axios from 'axios';
-
+import API_URL from "../config";
 const Feed = () => {
   const navigate = useNavigate();
   const [filterType, setFilterType] = useState("all");

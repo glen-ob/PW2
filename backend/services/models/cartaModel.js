@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import API_URL from "../../../frontend/src/config";
 
 const cartaSchema = new mongoose.Schema({
     nombre: {
@@ -57,29 +58,29 @@ cartaSchema.index({ valorEstimado: -1 });
 
 // Método para obtener URL completa de la imagen
 cartaSchema.virtual('imagenUrl').get(function () {
-  if (!this.imagen) return null;
+    if (!this.imagen) return null;
 
-  // Si ya es URL completa, respétala
-  if (this.imagen.startsWith('http')) return this.imagen;
+    // Si ya es URL completa, respétala
+    if (this.imagen.startsWith('http')) return this.imagen;
 
-  // 🔥 Aquí defines de dónde salen las imágenes
-  return `${API_URL}/uploads/cartas/${this.imagen}`;
+    // 🔥 Aquí defines de dónde salen las imágenes
+    return `${API_URL}/uploads/cartas/${this.imagen}`;
 });
 
 // Método estático para buscar cartas
-cartaSchema.statics.buscarCartas = async function(termino, franquicia = null, limite = 20) {
+cartaSchema.statics.buscarCartas = async function (termino, franquicia = null, limite = 20) {
     let query = {};
-    
+
     if (termino && termino.trim()) {
         query.$text = { $search: termino };
     }
-    
+
     if (franquicia) {
         query.idFranquicia = franquicia;
     }
-    
+
     query.activo = true;
-    
+
     return await this.find(query)
         .populate('idFranquicia', 'nombre')
         .populate('creadaPor', 'nombre nickname')
@@ -88,7 +89,7 @@ cartaSchema.statics.buscarCartas = async function(termino, franquicia = null, li
 };
 
 // Método estático para obtener cartas por franquicia
-cartaSchema.statics.obtenerPorFranquicia = async function(idFranquicia) {
+cartaSchema.statics.obtenerPorFranquicia = async function (idFranquicia) {
     return await this.find({ idFranquicia, activo: true })
         .populate('idFranquicia', 'nombre')
         .sort({ nombre: 1 });
@@ -97,7 +98,7 @@ cartaSchema.statics.obtenerPorFranquicia = async function(idFranquicia) {
 
 cartaSchema.set('toJSON', {
     virtuals: true,
-    transform: function(doc, ret) {
+    transform: function (doc, ret) {
         delete ret.__v;
         return ret;
     }

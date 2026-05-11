@@ -8,7 +8,7 @@ import { useReaccion } from '../hooks/useReaccion';
 import '../App.css';
 import '../index.css';
 import axios from 'axios';
-
+import API_URL from '../config';
 const Coleccion = () => {
   const navigate = useNavigate();
   const { usuario, token, isAuthenticated } = useAuth();

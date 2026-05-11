@@ -7,7 +7,7 @@ import CartaConEfecto from '../componentes/Cards/CartaConEfecto';
 import '../App.css';
 import '../pantallas/index.css';
 import '../componentes/Cards/cartas_efecto.css';
-
+import API_URL from '../config';
 const PerfilPublico = () => {
   const { userId } = useParams();
   const navigate = useNavigate();

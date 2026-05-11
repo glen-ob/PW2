@@ -3,7 +3,7 @@ import { X, Trophy, Medal, Award, Users, FileText, Heart, ThumbsUp, TrendingUp }
 import axios from 'axios';
 import '../../App.css';
 import '../../pantallas/index.css';
-
+import API_URL from '../../config';
 const UsuariosTopReport = ({ onClose }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(true);

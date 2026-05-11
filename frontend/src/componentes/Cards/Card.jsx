@@ -4,6 +4,8 @@ import { Heart, MessageCircle } from 'lucide-react';
 import { useReaccion } from '../../hooks/useReaccion';
 import { useAuth } from '../../../context/AuthContext';
 import axios from 'axios'; 
+import API_URL from '../../config';
+
 const Card = ({ card, onClick }) => {
   const { isAuthenticated, token } = useAuth();
   const { tieneLike, cantidadLikes, cargando, toggleLike } = useReaccion(card.id);
