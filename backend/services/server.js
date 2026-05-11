@@ -193,10 +193,6 @@ app.listen(PORT, () => {
 
 });
 
-// const express = require('express');
-//const cors = require('cors');
-//const app = express();
-
 // Configuración de CORS - permite todas las peticiones (para desarrollo)
 app.use(cors());
 
@@ -208,7 +204,7 @@ app.use(cors());
 // };
 // app.use(cors(corsOptions));
 
-app.options('*', cors());  // responder a preflight requests
+app.options('/(.*)/', cors());  // responder a preflight requests
 const mongoose = require('mongoose');
 const mongoURI = process.env.MONGODB_URI; // railway inyecta aqui
 mongoose.connect(mongoURI);
