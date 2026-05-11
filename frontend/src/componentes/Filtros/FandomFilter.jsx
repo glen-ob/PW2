@@ -16,7 +16,7 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
       try {
         setLoading(true);
 
-        const response = await fetch('${API_URL}/api/franquicias');
+        const response = await fetch('https://pw2-production.up.railway.app/api/franquicias');
 
         if (!response.ok) {
           throw new Error(`Error HTTP: ${response.status}`);
