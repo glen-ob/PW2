@@ -99,7 +99,7 @@ if (fs.existsSync(uploadsPath)) {
 
 // Middleware para archivos estáticos
 app.use('/uploads', express.static(uploadsPath));
-app.use('/uploads/cartas', express.static(path.join(uploadsPath, 'cartas')));
+app.use('/cartas', express.static(path.join(uploadsPath, 'cartas')));
 app.use('/uploads/perfiles', express.static(path.join(uploadsPath, 'perfiles')));
 app.use('/uploads/publicaciones', express.static(path.join(uploadsPath, 'publicaciones')));
 
@@ -144,7 +144,7 @@ app.get('/test-imagen', (req, res) => {
             <h1>Test de Imagen</h1>
             <p>Ruta: ${testPath}</p>
             <p>Existe: ${existe}</p>
-            ${existe ? '<img src="/uploads/cartas/imagesPokemon/bulbasaur.png" />' : '<p>Imagen no encontrada</p>'}
+            ${existe ? '<img src="/cartas/imagesPokemon/bulbasaur.png" />' : '<p>Imagen no encontrada</p>'}
         </body></html>
     `);
 });

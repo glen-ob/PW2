@@ -124,11 +124,11 @@ export const crearUsuarioConFoto = async (req, res) => {
             const optimizado = await optimizarImagen(req.file, 'perfiles');
 
             if (optimizado) {
-                fotoPerfilUrl = `/uploads/perfiles/${req.file.filename}`;
+                fotoPerfilUrl = `/perfiles/${req.file.filename}`;
                 console.log('Foto optimizada y guardada:', fotoPerfilUrl);
             } else {
                 // Si falla la optimización, usar la imagen original
-                fotoPerfilUrl = `/uploads/perfiles/${req.file.filename}`;
+                fotoPerfilUrl = `/perfiles/${req.file.filename}`;
                 console.log('Usando imagen sin optimizar:', fotoPerfilUrl);
             }
         }

@@ -96,7 +96,7 @@ export const crearCarta = async (req, res) => {
         
         // Optimizar imagen
         await optimizarImagen(req.file, 'cartas');
-        const imagenUrl = `/uploads/cartas/${req.file.filename}`;
+        const imagenUrl = `/cartas/${req.file.filename}`;
         
         const carta = new Carta({
             nombre,
@@ -190,7 +190,7 @@ export const actualizarCarta = async (req, res) => {
             }
             // Optimizar nueva imagen
             await optimizarImagen(req.file, 'cartas');
-            carta.imagen = `/uploads/cartas/${req.file.filename}`;
+            carta.imagen = `/cartas/${req.file.filename}`;
         }
         
         await carta.save();

@@ -47,12 +47,12 @@ const Gallery = ({ isOpen, onClose, onSelectCartas, franquicia, setFranquicia, s
             let cleanUrl = imagenUrl;
             
             // Limpiar la URL si tiene rutas previas
-            if (cleanUrl.includes('uploads/cartas/')) {
-              cleanUrl = cleanUrl.replace('uploads/cartas/', '');
+            if (cleanUrl.includes('cartas/')) {
+              cleanUrl = cleanUrl.replace('cartas/', '');
             }
             
             // Construir URL completa para el backend
-            imagenUrl = `${API_URL}/uploads/cartas/${cleanUrl}`;
+            imagenUrl = `${API_URL}/cartas/${cleanUrl}`;
             console.log('  URL transformada:', imagenUrl);
           }
           
