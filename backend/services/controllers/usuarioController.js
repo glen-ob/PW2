@@ -12,8 +12,8 @@ const __dirname = path.dirname(__filename);
 // Registrar un nuevo usuario
 export const crearUsuario = async (req, res) => {
     try {
-        
-        
+
+
         // Validar errores de express-validator
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -24,8 +24,8 @@ export const crearUsuario = async (req, res) => {
 
         // Verificar campos requeridos
         if (!nombre || !nickname || !correo || !contrasena) {
-            return res.status(400).json({ 
-                error: 'Todos los campos son requeridos: nombre, nickname, correo y contraseña' 
+            return res.status(400).json({
+                error: 'Todos los campos son requeridos: nombre, nickname, correo y contraseña'
             });
         }
 
@@ -54,7 +54,7 @@ export const crearUsuario = async (req, res) => {
         });
 
         const usuarioGuardado = await usuario.save();
-        
+
         // Generar token
         let token;
         try {
@@ -65,7 +65,7 @@ export const crearUsuario = async (req, res) => {
         }
 
         console.log('Usuario registrado exitosamente:', usuarioGuardado.correo);
-        
+
         res.status(201).json({
             mensaje: 'Usuario creado exitosamente',
             usuario: usuarioGuardado,
@@ -102,8 +102,8 @@ export const crearUsuarioConFoto = async (req, res) => {
         const { nombre, nickname, correo, contrasena } = req.body;
 
         if (!nombre || !nickname || !correo || !contrasena) {
-            return res.status(400).json({ 
-                error: 'Todos los campos son requeridos: nombre, nickname, correo, contraseña' 
+            return res.status(400).json({
+                error: 'Todos los campos son requeridos: nombre, nickname, correo, contraseña'
             });
         }
 
@@ -122,7 +122,7 @@ export const crearUsuarioConFoto = async (req, res) => {
         if (req.file) {
             // Optimizar la imagen
             const optimizado = await optimizarImagen(req.file, 'perfiles');
-            
+
             if (optimizado) {
                 fotoPerfilUrl = `/uploads/perfiles/${req.file.filename}`;
                 console.log('Foto optimizada y guardada:', fotoPerfilUrl);
@@ -145,7 +145,7 @@ export const crearUsuarioConFoto = async (req, res) => {
         });
 
         const usuarioGuardado = await usuario.save();
-        
+
         let token;
         try {
             token = generarToken(usuarioGuardado);
@@ -156,11 +156,10 @@ export const crearUsuarioConFoto = async (req, res) => {
 
         const usuarioResponse = usuarioGuardado.toJSON();
         if (fotoPerfilUrl) {
-            usuarioResponse.fotoPerfilUrl = `${API_URL}${fotoPerfilUrl}`;
+            usuarioResponse.fotoPerfilUrl = `usuario.fotoPerfil = fotoPerfilUrl;`;
         }
-
         console.log('Usuario registrado exitosamente con foto:', fotoPerfilUrl);
-        
+
         res.status(201).json({
             mensaje: 'Usuario creado exitosamente',
             usuario: usuarioResponse,
@@ -191,10 +190,10 @@ export const obtenerPerfil = async (req, res) => {
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
-        
+
         const usuarioResponse = usuario.toJSON();
         const baseUrl = `${req.protocol}://${req.get('host')}`;
-        
+
         // Manejar foto de perfil
         if (usuario.fotoPerfil) {
             usuarioResponse.fotoPerfilUrl = `${baseUrl}${usuario.fotoPerfil}`;
@@ -203,7 +202,7 @@ export const obtenerPerfil = async (req, res) => {
             usuarioResponse.fotoPerfilUrl = `${baseUrl}/uploads/perfiles/default-avatar.png`;
             usuarioResponse.fotoPerfil = null;
         }
-        
+
         console.log('Enviando perfil - Foto URL:', usuarioResponse.fotoPerfilUrl);
         res.json(usuarioResponse);
     } catch (error) {
@@ -217,7 +216,7 @@ export const loginUsuario = async (req, res) => {
     try {
         console.log('=== INTENTANDO INICIAR SESIÓN ===');
         console.log('Body recibido:', req.body);
-        
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errores: errors.array() });
@@ -287,51 +286,50 @@ export const actualizarPerfil = async (req, res) => {
     try {
         console.log('=== ACTUALIZANDO PERFIL ===');
         console.log('Body recibido:', req.body);
-        
+
         const { nombre, nickname, bio } = req.body;
         const userId = req.usuario.id;
-        
+
         const usuario = await Usuario.findById(userId);
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
-        
+
         if (nickname && nickname !== usuario.nickname) {
             const nicknameExistente = await Usuario.findOne({ nickname, _id: { $ne: userId } });
             if (nicknameExistente) {
                 return res.status(400).json({ error: 'El nickname ya está en uso por otro usuario' });
             }
         }
-        
+
         if (nombre && nombre !== usuario.nombre) {
             const nombreExistente = await Usuario.findOne({ nombre, _id: { $ne: userId } });
             if (nombreExistente) {
                 return res.status(400).json({ error: 'El nombre ya está en uso por otro usuario' });
             }
         }
-        
+
         if (nombre) usuario.nombre = nombre;
         if (nickname) usuario.nickname = nickname;
         if (bio !== undefined) usuario.bio = bio;
-        
+
         await usuario.save();
-        
+
         const nuevoToken = generarToken(usuario);
         const usuarioResponse = usuario.toJSON();
-        
         // Agregar URL completa de la foto
         if (usuario.fotoPerfil) {
-            usuarioResponse.fotoPerfilUrl = `${API_URL}${usuario.fotoPerfil}`;
+            usuarioResponse.fotoPerfilUrl = `usuario.fotoPerfil = fotoPerfilUrl;`;
         }
-        
+
         console.log('Perfil actualizado exitosamente');
-        
+
         res.json({
             mensaje: 'Perfil actualizado exitosamente',
             usuario: usuarioResponse,
             token: nuevoToken
         });
-        
+
     } catch (error) {
         console.error('Error actualizando perfil:', error);
         res.status(500).json({ error: 'Error al actualizar perfil: ' + error.message });
@@ -342,56 +340,52 @@ export const actualizarFotoPerfil = async (req, res) => {
     try {
         console.log('=== ACTUALIZANDO FOTO DE PERFIL ===');
         console.log('Archivo recibido:', req.file);
-        
+
         if (!req.file) {
             return res.status(400).json({ error: 'No se envió ninguna imagen' });
         }
 
-        
+
         const usuario = await Usuario.findById(req.usuario.id);
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
 
-        
+
         const fotoAnterior = usuario.fotoPerfil;
-        
-        
+
+
         const optimizado = await optimizarImagen(req.file, 'perfiles');
-        
+
         if (!optimizado) {
             return res.status(500).json({ error: 'Error al procesar la imagen' });
         }
-        
-       
+
+
         const fotoPerfilUrl = `/uploads/perfiles/${req.file.filename}`;
-        
+
         console.log('Nueva URL de foto:', fotoPerfilUrl);
-        
+
         // Actualizar usuario con la nueva foto
         usuario.fotoPerfil = fotoPerfilUrl;
         await usuario.save();
-        
-     
+
+
         if (fotoAnterior && fotoAnterior !== fotoPerfilUrl) {
             const oldFileName = fotoAnterior.split('/').pop();
             console.log('Intentando eliminar foto anterior:', oldFileName);
-            
-           
+
+
             try {
                 eliminarImagen(oldFileName, 'perfiles');
             } catch (deleteError) {
                 console.error('Error eliminando foto anterior:', deleteError);
             }
         }
-        
-        
+
         const usuarioActualizado = usuario.toJSON();
         const nuevoToken = generarToken(usuario);
-
-        
-        usuarioActualizado.fotoPerfilUrl = `${API_URL}${fotoPerfilUrl}`;
-
+        usuarioActualizado.fotoPerfilUrl = `usuario.fotoPerfil = fotoPerfilUrl;`;
         console.log('Foto actualizada exitosamente para usuario:', usuario.nickname);
 
         res.json({
@@ -410,11 +404,11 @@ export const actualizarFotoPerfil = async (req, res) => {
 export const buscarUsuarios = async (req, res) => {
     try {
         const { q } = req.query; // query parameter: ?q=blanca
-        
+
         if (!q || q.trim() === '') {
             return res.status(400).json({ error: 'Se requiere un término de búsqueda' });
         }
-        
+
         // Buscar por nombre o nickname (insensible a mayúsculas)
         const usuarios = await Usuario.find({
             $or: [
@@ -422,7 +416,7 @@ export const buscarUsuarios = async (req, res) => {
                 { nickname: { $regex: q, $options: 'i' } }
             ]
         }).select('-contrasena').limit(10); // Limitar a 10 resultados
-        
+
         res.json(usuarios);
     } catch (error) {
         console.error('Error buscando usuarios:', error);
@@ -434,19 +428,19 @@ export const buscarUsuarios = async (req, res) => {
 export const obtenerPerfilPublico = async (req, res) => {
     try {
         const { identificador } = req.params;
-        
-        
+
+
         const usuario = await Usuario.findOne({
             $or: [
                 { _id: identificador },
                 { nickname: identificador }
             ]
         }).select('-contrasena');
-        
+
         if (!usuario) {
             return res.status(404).json({ error: 'Usuario no encontrado' });
         }
-        
+
         res.json(usuario);
     } catch (error) {
         console.error('Error obteniendo perfil público:', error);
@@ -458,13 +452,13 @@ export const obtenerPerfilPublico = async (req, res) => {
 export const obtenerColeccionPublica = async (req, res) => {
     try {
         const { usuarioId } = req.params;
-        
-        
+
+
         const coleccionEjemplo = [
             { id: 1, nombre: "Pikachu", imagen: "https://i.pinimg.com/736x/e7/02/c6/e702c62be77870ff68d2decd19cbd137.jpg", rareza: "Común" },
             { id: 2, nombre: "Charizard", imagen: "https://i.pinimg.com/736x/46/7d/27/467d27d51e4a84775142a54a7534ac89.jpg", rareza: "Rara" },
         ];
-        
+
         res.json(coleccionEjemplo);
     } catch (error) {
         console.error('Error obteniendo colección pública:', error);
