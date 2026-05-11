@@ -13,7 +13,7 @@ const FandomsTopReport = ({ onClose }) => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/api/reportes/top-fandoms', {
+        const response = await axios.get('${API_URL}/api/reportes/top-fandoms', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setFandoms(response.data.data);

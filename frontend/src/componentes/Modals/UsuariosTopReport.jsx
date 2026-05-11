@@ -15,7 +15,7 @@ const UsuariosTopReport = ({ onClose }) => {
         const token = localStorage.getItem('token');
         console.log('Token:', token ? 'Existe' : 'No existe');
         
-        const response = await axios.get('http://localhost:3000/api/reportes/top-usuarios', {
+        const response = await axios.get('${API_URL}/api/reportes/top-usuarios', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -159,7 +159,7 @@ const UsuariosTopReport = ({ onClose }) => {
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-slate-700 flex-shrink-0">
                       {!imagenesConError[usuario._id] && usuario.fotoPerfil ? (
                         <img 
-                          src={usuario.fotoPerfil.startsWith('http') ? usuario.fotoPerfil : `http://localhost:3000${usuario.fotoPerfil}`} 
+                          src={usuario.fotoPerfil.startsWith('http') ? usuario.fotoPerfil : `${API_URL}${usuario.fotoPerfil}`} 
                           alt={usuario.nickname}
                           className="w-full h-full object-cover"
                           onError={() => handleImageError(usuario._id)}

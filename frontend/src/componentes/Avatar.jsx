@@ -34,11 +34,11 @@ const Avatar = ({
    
     let url = null;
     if (fotoPerfil.startsWith('/uploads')) {
-      url = `http://localhost:3000${fotoPerfil}`;
+      url = `${API_URL}${fotoPerfil}`;
     } else if (fotoPerfil.startsWith('/')) {
-      url = `http://localhost:3000${fotoPerfil}`;
+      url = `${API_URL}${fotoPerfil}`;
     } else {
-      url = `http://localhost:3000/uploads/perfiles/${fotoPerfil}`;
+      url = `${API_URL}/uploads/perfiles/${fotoPerfil}`;
     }
     
     setFotoUrl(url);

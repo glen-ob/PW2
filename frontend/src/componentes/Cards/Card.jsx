@@ -12,7 +12,7 @@ const Card = ({ card, onClick }) => {
 
   const fetchComentariosCount = async () => {
     try {
-      const response = await axios.get(`http://localhost:3000/api/publicaciones/${card.id}/comentarios`);
+      const response = await axios.get(`${API_URL}/api/publicaciones/${card.id}/comentarios`);
       const count = response.data.totalComentarios || response.data.comentarios?.length || 0;
       setTotalComentarios(count);
       

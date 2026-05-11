@@ -26,7 +26,7 @@ const Navbar = () => {
 
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:3000/api/usuarios/buscar?q=${encodeURIComponent(query)}`);
+      const response = await axios.get(`${API_URL}/api/usuarios/buscar?q=${encodeURIComponent(query)}`);
       setSearchResults(response.data);
       setShowResults(true);
     } catch (error) {

@@ -31,7 +31,7 @@ const PublicarCarta = () => {
   useEffect(() => {
     const fetchFranquicias = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/franquicias');
+        const res = await axios.get('${API_URL}/api/franquicias');
         setFranquicias(res.data.franquicias);
       } catch (error) {
         console.error('Error cargando franquicias:', error);
@@ -189,7 +189,7 @@ const PublicarCarta = () => {
         formDataToSend.append('CartasColeccion', JSON.stringify(deck));
       }
 
-      const response = await fetch('http://localhost:3000/api/publicaciones', {
+      const response = await fetch('${API_URL}/api/publicaciones', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`

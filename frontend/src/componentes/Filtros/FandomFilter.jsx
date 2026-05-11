@@ -15,7 +15,7 @@ const FandomFilter = ({ selectedFandoms, onFandomChange }) => {
       try {
         setLoading(true);
         
-        const response = await fetch('http://localhost:3000/api/franquicias');
+        const response = await fetch('${API_URL}/api/franquicias');
         
         if (!response.ok) {
           throw new Error(`Error HTTP: ${response.status}`);

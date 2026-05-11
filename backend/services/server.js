@@ -191,3 +191,4 @@ app.listen(PORT, () => {
     console.log(`Servidor corriendo en puerto ${PORT}`);
     console.log(` Serviendo archivos estáticos desde: ${uploadsPath}`);
 });
+

@@ -96,7 +96,7 @@ const AuthPage = () => {
         }
 
         const response = await axios.post(
-          'http://localhost:3000/api/usuarios/registro-con-foto',
+          '${API_URL}/api/usuarios/registro-con-foto',
           formDataToSend,
           {
             headers: { 'Content-Type': 'multipart/form-data' }

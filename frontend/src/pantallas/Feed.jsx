@@ -29,7 +29,7 @@ const Feed = () => {
   useEffect(() => {
     const fetchPublicaciones = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/publicaciones?tipo=feed');
+        const res = await axios.get('${API_URL}/api/publicaciones?tipo=feed');
         setPublicaciones(res.data.publicaciones);
       } catch (error) {
         console.error('Error cargando publicaciones:', error);
@@ -43,7 +43,7 @@ const Feed = () => {
   useEffect(() => {
     const fetchFandoms = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/franquicias');
+        const res = await axios.get('${API_URL}/api/franquicias');
         if (res.data.success && res.data.franquicias) {
           setFandomsList(res.data.franquicias);
         }

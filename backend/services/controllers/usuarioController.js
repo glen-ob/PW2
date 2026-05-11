@@ -156,7 +156,7 @@ export const crearUsuarioConFoto = async (req, res) => {
 
         const usuarioResponse = usuarioGuardado.toJSON();
         if (fotoPerfilUrl) {
-            usuarioResponse.fotoPerfilUrl = `http://localhost:3000${fotoPerfilUrl}`;
+            usuarioResponse.fotoPerfilUrl = `${API_URL}${fotoPerfilUrl}`;
         }
 
         console.log('Usuario registrado exitosamente con foto:', fotoPerfilUrl);
@@ -321,7 +321,7 @@ export const actualizarPerfil = async (req, res) => {
         
         // Agregar URL completa de la foto
         if (usuario.fotoPerfil) {
-            usuarioResponse.fotoPerfilUrl = `http://localhost:3000${usuario.fotoPerfil}`;
+            usuarioResponse.fotoPerfilUrl = `${API_URL}${usuario.fotoPerfil}`;
         }
         
         console.log('Perfil actualizado exitosamente');
@@ -390,7 +390,7 @@ export const actualizarFotoPerfil = async (req, res) => {
         const nuevoToken = generarToken(usuario);
 
         
-        usuarioActualizado.fotoPerfilUrl = `http://localhost:3000${fotoPerfilUrl}`;
+        usuarioActualizado.fotoPerfilUrl = `${API_URL}${fotoPerfilUrl}`;
 
         console.log('Foto actualizada exitosamente para usuario:', usuario.nickname);
 

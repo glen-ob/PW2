@@ -63,7 +63,7 @@ cartaSchema.virtual('imagenUrl').get(function () {
   if (this.imagen.startsWith('http')) return this.imagen;
 
   // 🔥 Aquí defines de dónde salen las imágenes
-  return `http://localhost:3000/uploads/cartas/${this.imagen}`;
+  return `${API_URL}/uploads/cartas/${this.imagen}`;
 });
 
 // Método estático para buscar cartas

@@ -44,7 +44,7 @@ const PubliCard = ({
     try {
       const token = tokenActual || localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:3000/api/publicaciones/${publicacion.id}/comentarios`,
+        `${API_URL}/api/publicaciones/${publicacion.id}/comentarios`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -93,7 +93,7 @@ const PubliCard = ({
       const token = tokenActual || localStorage.getItem("token");
       
       await axios.post(
-        `http://localhost:3000/api/publicaciones/${publicacion.id}/comentarios`, 
+        `${API_URL}/api/publicaciones/${publicacion.id}/comentarios`, 
         { texto: nuevoComentario },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -244,7 +244,7 @@ const PubliCard = ({
                         comentario.usuario?.fotoPerfil 
                           ? comentario.usuario.fotoPerfil.startsWith('http') 
                             ? comentario.usuario.fotoPerfil 
-                            : `http://localhost:3000${comentario.usuario.fotoPerfil}`
+                            : `${API_URL}${comentario.usuario.fotoPerfil}`
                           : "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"
                       } 
                       alt={comentario.usuario?.nickname || 'Usuario'} 
@@ -276,7 +276,7 @@ const PubliCard = ({
                 src={usuario?.fotoPerfil 
                   ? usuario.fotoPerfil.startsWith('http') 
                     ? usuario.fotoPerfil 
-                    : `http://localhost:3000${usuario.fotoPerfil}`
+                    : `${API_URL}${usuario.fotoPerfil}`
                   : "https://media.tenor.com/pgRHsHG3M2MAAAAe/gato-serio.png"
                 } 
                 alt="Avatar" 

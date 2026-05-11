@@ -14,7 +14,7 @@ const PublicacionesTopReport = ({ onClose }) => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/api/reportes/top-publicaciones', {
+        const response = await axios.get('${API_URL}/api/reportes/top-publicaciones', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPublicaciones(response.data.data);

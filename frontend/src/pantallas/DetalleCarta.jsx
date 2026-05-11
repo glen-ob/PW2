@@ -11,7 +11,7 @@ import axios from 'axios';
 const DetalleCarta = () => {
   const navigate = useNavigate();
   const { usuario, isAuthenticated, token } = useAuth(); 
-  const rutaFotoPerfil = "http://localhost:3000";
+  const rutaFotoPerfil = "${API_URL}";
   const { id } = useParams();
   
   const [Publicacion, setPublicacion] = useState(null);
@@ -33,7 +33,7 @@ const DetalleCarta = () => {
   useEffect(() => {
     const fetchPublicacion = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/publicaciones/${id}`);
+        const res = await axios.get(`${API_URL}/api/publicaciones/${id}`);
         const p = res.data.publicacion;
 
         const publicacionMapeada = {
@@ -77,7 +77,7 @@ const handleEnviarComentario = async (e) => {
        
         
         const response = await axios.post(
-            `http://localhost:3000/api/publicaciones/${id}/comentarios`, 
+            `${API_URL}/api/publicaciones/${id}/comentarios`, 
             { texto: comentario },
             { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -98,7 +98,7 @@ const handleEnviarComentario = async (e) => {
 const fetchComentarios = async () => {
     try {
        
-        const res = await axios.get(`http://localhost:3000/api/publicaciones/${id}/comentarios`);
+        const res = await axios.get(`${API_URL}/api/publicaciones/${id}/comentarios`);
 
         const comentariosMapeados = (res.data.comentarios || []).map(c => ({
             id: c._id,

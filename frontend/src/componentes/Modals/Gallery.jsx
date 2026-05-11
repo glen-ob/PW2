@@ -16,7 +16,7 @@ const Gallery = ({ isOpen, onClose, onSelectCartas, franquicia, setFranquicia, s
   useEffect(() => {
     const fetchFranquicias = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/franquicias');
+        const res = await axios.get('${API_URL}/api/franquicias');
         setFranquicias(res.data.franquicias);
         console.log('Franquicias cargadas:', res.data.franquicias.length);
       } catch (error) {
@@ -29,7 +29,7 @@ const Gallery = ({ isOpen, onClose, onSelectCartas, franquicia, setFranquicia, s
   useEffect(() => {
     const fetchCartas = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/cartas');
+        const res = await axios.get('${API_URL}/api/cartas');
         console.log('Cartas recibidas:', res.data.cartas.length);
 
         const cartasMapeadas = res.data.cartas.map(carta => {
@@ -51,7 +51,7 @@ const Gallery = ({ isOpen, onClose, onSelectCartas, franquicia, setFranquicia, s
             }
             
             // Construir URL completa para el backend
-            imagenUrl = `http://localhost:3000/uploads/cartas/${cleanUrl}`;
+            imagenUrl = `${API_URL}/uploads/cartas/${cleanUrl}`;
             console.log('  URL transformada:', imagenUrl);
           }
           

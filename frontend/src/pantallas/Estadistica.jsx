@@ -47,7 +47,7 @@ const Estadistica = () => {
         const token = localStorage.getItem('token');
         
         // Cargar estadísticas principales
-        const statsResponse = await axios.get('http://localhost:3000/api/estadisticas/usuario', {
+        const statsResponse = await axios.get('${API_URL}/api/estadisticas/usuario', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -56,7 +56,7 @@ const Estadistica = () => {
         }
         
         // Cargar datos para la gráfica según el período
-        const graficaResponse = await axios.get(`http://localhost:3000/api/estadisticas/grafica?periodo=${periodo}`, {
+        const graficaResponse = await axios.get(`${API_URL}/api/estadisticas/grafica?periodo=${periodo}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
@@ -65,7 +65,7 @@ const Estadistica = () => {
         }
         
         // Cargar distribución de interacciones
-        const distribucionResponse = await axios.get('http://localhost:3000/api/estadisticas/distribucion', {
+        const distribucionResponse = await axios.get('${API_URL}/api/estadisticas/distribucion', {
           headers: { Authorization: `Bearer ${token}` }
         });
         

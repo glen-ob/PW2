@@ -45,7 +45,7 @@ const PerfilPublico = () => {
       }
       
       try {
-        const response = await axios.get(`http://localhost:3000/api/usuarios/${userId}`);
+        const response = await axios.get(`${API_URL}/api/usuarios/${userId}`);
         setUsuario(response.data);
       } catch (error) {
         console.error('Error cargando usuario:', error);
@@ -63,7 +63,7 @@ const PerfilPublico = () => {
         try {
 
           const res = await axios.get(
-            `http://localhost:3000/api/colecciones/usuario/${userId}`
+            `${API_URL}/api/colecciones/usuario/${userId}`
           );
 
           const colecciones = res.data.colecciones;

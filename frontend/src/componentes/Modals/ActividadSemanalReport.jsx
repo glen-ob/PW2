@@ -24,7 +24,7 @@ const ActividadSemanalReport = ({ onClose }) => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/api/reportes/actividad-semanal', {
+        const response = await axios.get('${API_URL}/api/reportes/actividad-semanal', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setActividad(response.data.data);
