@@ -136,7 +136,7 @@ publicacionesSchema.index({ Estado: 1, createdAt: -1 });
 
 publicacionesSchema.virtual('fotosUrls').get(function() {
     if (!this.Fotos || this.Fotos.length === 0) return [];
-    const baseUrl = process.env.BASE_URL || '${API_URL}';
+    const baseUrl = process.env.BASE_URL || 'https://pw2-production.up.railway.app';
     return this.Fotos.map(foto => `${baseUrl}/uploads/publicaciones/${foto}`);
 });
 

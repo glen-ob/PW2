@@ -63,7 +63,7 @@ cartaSchema.virtual('imagenUrl').get(function () {
     if (this.imagen.startsWith('http')) return this.imagen;
 
     // 🔥 Aquí defines de dónde salen las imágenes
-    return `${API_URL}/uploads/cartas/${this.imagen}`;
+    return `https://pw2-production.up.railway.app/uploads/cartas/${this.imagen}`;
 });
 
 // Método estático para buscar cartas
