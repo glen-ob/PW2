@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../componentes/Layout/navbar";
+import { useNavigate } from "react-router-dom"; 
+import Navbar from "../componentes/Layout/Navbar";
 import LeftSidebar from "../componentes/Sidebar/LeftSidebar";
 import FeedControls from "../componentes/Filtros/FeedControls";
 import CardGrid from "../componentes/Cards/CardGrid";
