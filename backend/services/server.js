@@ -16,7 +16,6 @@ import cartaRoutes from "./routes/cartaRoutes.js";
 import coleccionRoutes from "./routes/coleccionRoutes.js";
 import reporteRoutes from './routes/reporteRoutes.js';
 import estadisticaRoutes from './routes/estadisticaRoutes.js';
-import API_URL from "../../frontend/src/config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
