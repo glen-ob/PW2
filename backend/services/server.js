@@ -201,13 +201,13 @@ app.listen(PORT, () => {
 // app.use(cors());
 
 const corsOptions = {
-    origin: 'https://pw-2-72rx.vercel.app/', // <- tu URL de Vercel
+    origin: 'https://pw-2-72rx.vercel.app', 
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
-
+app.options('*', cors());  // responder a preflight requests
 const mongoose = require('mongoose');
 const mongoURI = process.env.MONGODB_URI; // railway inyecta aqui
 mongoose.connect(mongoURI);

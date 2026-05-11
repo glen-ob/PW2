@@ -4,8 +4,7 @@
   "type": "module",
   "main": "services/server.js",
   "scripts": {
-    "dev": "node services/server.js",
-    "start": "node index.js"
+    "dev": "node services/server.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
