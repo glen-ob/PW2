@@ -99,7 +99,7 @@ const Coleccion = () => {
               if (!c.imagen) return null;
               if (c.imagen.startsWith('http')) return c.imagen;
               if (c.imagen.startsWith('/uploads')) return `${API_URL}${c.imagen}`;
-              return `${API_URL}/uploads/cartas/${c.imagen}`;
+              return `${API_URL}/cartas/${c.imagen}`;
             })
             .filter(Boolean),
           likes: p.MeGusta || 0,
