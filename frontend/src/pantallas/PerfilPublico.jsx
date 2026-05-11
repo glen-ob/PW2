@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Navbar from '../componentes/Layout/navbar';
+import Navbar from '../componentes/Layout/Navbar';
 import Avatar from '../componentes/Avatar';
 import CartaConEfecto from '../componentes/Cards/CartaConEfecto';
 import '../App.css';
