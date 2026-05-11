@@ -8,6 +8,10 @@ import { optimizarImagen, eliminarImagen } from '../utils/imageUtils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// Configuración de API
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+export default API_URL;
 
 // Registrar un nuevo usuario
 export const crearUsuario = async (req, res) => {
