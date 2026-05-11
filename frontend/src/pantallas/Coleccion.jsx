@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Navbar from '../componentes/Layout/navbar';
+import Navbar from '../componentes/Layout/Navbar';
 import PubliCard from '../componentes/Cards/PubliCard';
 import Avatar from '../componentes/Avatar'; 
 import { useReaccion } from '../hooks/useReaccion';

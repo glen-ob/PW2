@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Navbar from '../componentes/Layout/navbar';
+import Navbar from '../componentes/Layout/Navbar';
 import Avatar from '../componentes/Avatar';
 import { Camera, X, Save, AlertCircle } from 'lucide-react';
 import '../App.css';
