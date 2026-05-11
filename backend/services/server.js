@@ -47,11 +47,11 @@ console.log('Existe uploads?', fs.existsSync(uploadsPath));
 // Verificar estructura de carpetas
 if (fs.existsSync(uploadsPath)) {
     console.log('Contenido de uploads:', fs.readdirSync(uploadsPath));
-    
+
     const cartasPath = path.join(uploadsPath, 'cartas');
     if (fs.existsSync(cartasPath)) {
         console.log('Contenido de cartas:', fs.readdirSync(cartasPath));
-        
+
         // Verificar subcarpetas
         const subCarpetas = fs.readdirSync(cartasPath);
         subCarpetas.forEach(carpeta => {
@@ -94,7 +94,7 @@ app.use('/imagesDigimon', express.static(path.join(uploadsPath, 'cartas', 'image
 app.get('/debug/imagen/:ruta', (req, res) => {
     const rutaCompleta = path.join(uploadsPath, 'cartas', req.params.ruta);
     const existe = fs.existsSync(rutaCompleta);
-    
+
     res.json({
         buscado: req.params.ruta,
         rutaCompleta: rutaCompleta,
@@ -107,7 +107,7 @@ app.get('/debug/imagen/:ruta', (req, res) => {
 app.get('/debug/listar-imagenes', (req, res) => {
     const cartasPath = path.join(uploadsPath, 'cartas');
     const resultado = {};
-    
+
     if (fs.existsSync(cartasPath)) {
         const carpetas = fs.readdirSync(cartasPath);
         carpetas.forEach(carpeta => {
@@ -117,7 +117,7 @@ app.get('/debug/listar-imagenes', (req, res) => {
             }
         });
     }
-    
+
     res.json({
         uploadsPath: uploadsPath,
         cartasPath: cartasPath,
@@ -129,7 +129,7 @@ app.get('/debug/listar-imagenes', (req, res) => {
 app.get('/test-imagen', (req, res) => {
     const testPath = path.join(uploadsPath, 'cartas', 'imagesPokemon', 'bulbasaur.png');
     const existe = fs.existsSync(testPath);
-    
+
     res.send(`
         <html>
             <body>
@@ -186,11 +186,28 @@ app.get('/check-image/:filename', (req, res) => {
     }
 });
 
-// const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-// app.listen(PORT, () => {
-//     console.log(`\n========================================`);
-    
-// });
+app.listen(PORT, () => {
+    console.log(`\n========================================`);
 
-export default app;
+});
+
+// const express = require('express');
+// const cors = require('cors');
+// const app = express();
+
+// // Configuración de CORS - permite todas las peticiones (para desarrollo)
+// app.use(cors());
+
+const corsOptions = {
+    origin: 'https://pw-2-72rx.vercel.app/', // <- tu URL de Vercel
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
+
+const mongoose = require('mongoose');
+const mongoURI = process.env.MONGODB_URI; // railway inyecta aqui
+mongoose.connect(mongoURI);
