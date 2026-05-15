@@ -110,7 +110,7 @@ app.use('/imagesDB', express.static(path.join('cartas', 'imagesDB')));
 app.use('/imagesYugioh', express.static(path.join('cartas', 'imagesYugioh')));
 app.use('/imagesDigimon', express.static(path.join('cartas', 'imagesDigimon')));
 
-// ============ RUTAS DE DEBUG (opcionales, remover en producción) ============
+// ============ RUTAS DE DEBUG ============ 
 app.get('/debug/imagen/:ruta', (req, res) => {
     const rutaCompleta = path.join('cartas', req.params.ruta);
     const existe = fs.existsSync(rutaCompleta);
