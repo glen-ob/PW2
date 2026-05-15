@@ -99,20 +99,20 @@ if (fs.existsSync(uploadsPath)) {
 
 // Middleware para archivos estáticos
 app.use('/uploads', express.static(uploadsPath));
-app.use('/cartas', express.static(path.join(uploadsPath, 'cartas')));
+app.use('/cartas', express.static(path.join('cartas')));
 app.use('/uploads/perfiles', express.static(path.join(uploadsPath, 'perfiles')));
 app.use('/uploads/publicaciones', express.static(path.join(uploadsPath, 'publicaciones')));
 
 // Rutas específicas para imágenes por franquicia
-app.use('/imagesPokemon', express.static(path.join(uploadsPath, 'cartas', 'imagesPokemon')));
-app.use('/imagesMagic', express.static(path.join(uploadsPath, 'cartas', 'imagesMagic')));
-app.use('/imagesDB', express.static(path.join(uploadsPath, 'cartas', 'imagesDB')));
-app.use('/imagesYugioh', express.static(path.join(uploadsPath, 'cartas', 'imagesYugioh')));
-app.use('/imagesDigimon', express.static(path.join(uploadsPath, 'cartas', 'imagesDigimon')));
+app.use('/imagesPokemon', express.static(path.join('cartas', 'imagesPokemon')));
+app.use('/imagesMagic', express.static(path.join('cartas', 'imagesMagic')));
+app.use('/imagesDB', express.static(path.join('cartas', 'imagesDB')));
+app.use('/imagesYugioh', express.static(path.join('cartas', 'imagesYugioh')));
+app.use('/imagesDigimon', express.static(path.join('cartas', 'imagesDigimon')));
 
 // ============ RUTAS DE DEBUG (opcionales, remover en producción) ============
 app.get('/debug/imagen/:ruta', (req, res) => {
-    const rutaCompleta = path.join(uploadsPath, 'cartas', req.params.ruta);
+    const rutaCompleta = path.join('cartas', req.params.ruta);
     const existe = fs.existsSync(rutaCompleta);
     res.json({
         buscado: req.params.ruta,
@@ -122,7 +122,7 @@ app.get('/debug/imagen/:ruta', (req, res) => {
 });
 
 app.get('/debug/listar-imagenes', (req, res) => {
-    const cartasPath = path.join(uploadsPath, 'cartas');
+    const cartasPath = path.join('cartas');
     const resultado = {};
     if (fs.existsSync(cartasPath)) {
         const carpetas = fs.readdirSync(cartasPath);
