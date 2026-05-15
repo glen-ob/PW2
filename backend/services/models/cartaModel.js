@@ -62,7 +62,7 @@ cartaSchema.virtual('imagenUrl').get(function () {
     // Si ya es URL completa, respétala
     if (this.imagen.startsWith('http')) return this.imagen;
 
-    // 🔥 Aquí defines de dónde salen las imágenes
+    // Aquí defines de dónde salen las imágenes
     return `https://pw2-production.up.railway.app/cartas/${this.imagen}`;
 });
 

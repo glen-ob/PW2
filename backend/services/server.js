@@ -137,7 +137,7 @@ app.get('/debug/listar-imagenes', (req, res) => {
 });
 
 app.get('/test-imagen', (req, res) => {
-    const testPath = path.join(uploadsPath, 'cartas', 'imagesPokemon', 'bulbasaur.png');
+    const testPath = path.join('cartas', 'imagesPokemon', 'bulbasaur.png');
     const existe = fs.existsSync(testPath);
     res.send(`
         <html><body>
